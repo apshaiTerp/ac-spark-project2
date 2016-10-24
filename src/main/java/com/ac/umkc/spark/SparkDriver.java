@@ -17,6 +17,7 @@ public class SparkDriver {
   public static void main(String[] args) {
     try {
       SparkSession spark = SparkSession.builder()
+          .master("local")
           .appName("Java SparkDriver")
           .config("spark.some.config.option", "some-value")
           .getOrCreate();
