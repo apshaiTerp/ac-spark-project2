@@ -56,6 +56,8 @@ public class TwitterUser implements Serializable {
   }
   
   public void parseFromJSON(String line) {
+    System.out.println ("What was the line: " + line);
+    
     JSONObject jsonUser = new JSONObject(line);
     twitterID      = jsonUser.getLong("twitterID");
     userName       = jsonUser.getString("userName");
