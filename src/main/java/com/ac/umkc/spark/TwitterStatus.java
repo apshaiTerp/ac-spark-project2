@@ -11,28 +11,6 @@ import org.json.JSONObject;
 /**
  * @author AC010168
  * 
- * Example tweet JSON
- *     {
- *      "coordinates":{"coordinates":[-75.14310264,40.05701649],"type":"Point"},
- *      "created_at": "Wed Aug 29 17:12:58 +0000 2012",
- *      "id_str": "240859602684612608",
- *      "entities": {
- *        "hashtags": [
- *   
- *        ],
- *      },
- *      "text": "Introducing the Twitter Certified Products Program: https://t.co/MjJ8xAnT",
- *      "retweet_count": 121,
- *      "favorite_count": 95,
- *      "id": 240859602684612608,
- *      "user": {
- *        "name": "Twitter API",
- *        "id_str": "6253282",
- *        "id": 6253282,
- *        "screen_name": "twitterapi"
- *      },
- *    }
- * 
  */
 public class TwitterStatus {
   
