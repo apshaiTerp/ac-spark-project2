@@ -56,15 +56,21 @@ public class TwitterUser implements Serializable {
   }
   
   public void parseFromJSON(String line) {
-    JSONObject jsonUser = new JSONObject(line);
-    twitterID      = jsonUser.getLong("twitterID");
-    userName       = jsonUser.getString("userName");
-    screenName     = jsonUser.getString("screenName");
-    followersCount = jsonUser.getInt("followersCount");
-    friendsCount   = jsonUser.getInt("friendsCount");
-    statusesCount  = jsonUser.getInt("statusesCount");
-    userType       = jsonUser.getString("userType");
-    location       = jsonUser.getString("location");
+    try {
+      JSONObject jsonUser = new JSONObject(line);
+      twitterID      = jsonUser.getLong("twitterID");
+      userName       = jsonUser.getString("userName");
+      screenName     = jsonUser.getString("screenName");
+      followersCount = jsonUser.getInt("followersCount");
+      friendsCount   = jsonUser.getInt("friendsCount");
+      statusesCount  = jsonUser.getInt("statusesCount");
+      userType       = jsonUser.getString("userType");
+      location       = jsonUser.getString("location");
+      
+      System.out.println ("Successfully Parsed");
+    } catch (Throwable t) {
+      System.out.println("UNABLE TO PARSE: " + line);
+    }
   }
   
   /*
