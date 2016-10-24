@@ -32,7 +32,7 @@ import org.json.JSONObject;
  *        "screen_name": "twitterapi"
  *      },
  *    }
- *
+ * 
  */
 public class TwitterStatus {
   
