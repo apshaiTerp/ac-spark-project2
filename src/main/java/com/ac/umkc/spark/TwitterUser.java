@@ -55,6 +55,11 @@ public class TwitterUser implements Serializable {
         location + "\"}";
   }
   
+  /**
+   * Utility method to parse the JSON string into an object
+   * 
+   * @param line the json content to be parsed
+   */
   public void parseFromJSON(String line) {
     try {
       JSONObject jsonUser = new JSONObject(line);

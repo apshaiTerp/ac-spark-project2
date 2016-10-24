@@ -35,8 +35,6 @@ public class SparkDriver {
             private static final long serialVersionUID = 5654145143753968626L;
 
             public TwitterUser call(String line) throws Exception {
-              if (line.trim().length() == 0)
-                return null;
               TwitterUser user = new TwitterUser();
               user.parseFromJSON(line);
               return user;
@@ -46,8 +44,27 @@ public class SparkDriver {
       Dataset<Row> userDF = spark.createDataFrame(userRDD, TwitterUser.class);
       userDF.createOrReplaceTempView("users");
       
-      Dataset<Row> resultsDF = spark.sql("SELECT userType, count(*) FROM users GROUP BY userType");
+      Dataset<Row> resultsDF = spark.sql("SELECT userType, count(*) FROM users GROUP BY userType ORDER BY count(*) desc");
       resultsDF.show();
+      
+      
+      JavaRDD<TwitterStatus> tweetRDD = spark.read().textFile(args[1]).javaRDD().map(
+          new Function<String, TwitterStatus>() {
+            
+            /** It wants it, so I gave it one */
+            private static final long serialVersionUID = 1503107307123339206L;
+
+            public TwitterStatus call(String line) throws Exception {
+              TwitterStatus status = new TwitterStatus();
+              status.parseFromJSON(line);
+              return status;
+            }
+          });
+      
+      Dataset<Row> tweetDF = spark.createDataFrame(tweetRDD, TwitterStatus.class);
+      tweetDF.createOrReplaceTempView("tweets");
+      
+      tweetDF.show();
 
     } catch (Throwable t) {
       t.printStackTrace();
