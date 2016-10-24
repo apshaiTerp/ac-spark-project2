@@ -34,6 +34,8 @@
     <!--  Dependency Versions  -->  
     <ac.spark.version>2.0.0</ac.spark.version>
 
+    <ac.json.version>20160810</ac.json.version>
+
     <junit.version>4.11</junit.version>
     
     <!--  Plugin Versions  -->
@@ -59,6 +61,12 @@
       <artifactId>spark-sql_2.10</artifactId>
       <version>${ac.spark.version}</version>
     </dependency>   
+
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>${ac.json.version}</version>
+    </dependency> 
 
     <!-- Test Dependencies -->
     <dependency>
