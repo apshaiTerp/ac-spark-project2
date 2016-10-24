@@ -1,8 +1,8 @@
 package com.ac.umkc.spark;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -15,7 +15,9 @@ import org.json.JSONObject;
 public class TwitterStatus {
   
   /** Date formatter for converting Date object to text for json output */
-  private static final SimpleDateFormat formatter = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss Z");
+  private static final SimpleDateFormat fullFormatter  = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss Z");
+  
+  private static final SimpleDateFormat shortFormatter = new SimpleDateFormat("yyyy.MM.dd");
   
   /** The unique ID for this tweet */
   private long statusID;
@@ -32,11 +34,14 @@ public class TwitterStatus {
   /** The list of HashTags used in this tweet.  May be empty */
   private List<String> hashTags;
   /** The date this tweet was tweeted */
-  private Date createdDate;
+  private String createdDate;
   /** Geo-coordinates for where this tweet happened */
   private double geoLat;
   /** Geo-coordinates for where this tweet happened */
   private double geoLon;
+  
+  /** Helper for clustering / partitioning? */
+  private String shortDate;
   
   /**
    * Basic Constructor
@@ -52,6 +57,7 @@ public class TwitterStatus {
     createdDate   = null;
     geoLat        = 0.0;
     geoLon        = 0.0;
+    shortDate     = null;
   }
 
   /**
@@ -71,7 +77,7 @@ public class TwitterStatus {
         ",\"userName\":\"" + userName + "\",\"retweetCount\":" + retweetCount + 
         ",\"favoriteCount\":" + favoriteCount + ",\"filteredText\":\"" + filteredText + 
         "\",\"geoLat\":" + geoLat + ",\"geoLon\":" + geoLon + ",\"createdDate\":\"" + 
-        formatter.format(createdDate) + "\",\"hashTags\":[";
+        fullFormatter.format(createdDate) + "\",\"hashTags\":[";
     
     for (int i = 0; i < hashTags.size(); i++) {
       json += "\"" + hashTags.get(i) + "\"";
@@ -99,21 +105,21 @@ public class TwitterStatus {
       favoriteCount = jsonUser.getInt("favoriteCount");
       filteredText  = jsonUser.getString("filteredText");
       hashTags      = new ArrayList<String>();
-      createdDate   = formatter.parse(jsonUser.getString("createdDate"));
+      createdDate   = jsonUser.getString("createdDate");
       geoLat        = jsonUser.getDouble("geoLat");
       geoLon        = jsonUser.getDouble("geoLon");
       
       JSONArray jsonHash = jsonUser.getJSONArray("hashTags");
       for (int i = 0; i < jsonHash.length(); i++)
         addHashTag(jsonHash.getString(i));
+      
+      setShortDate(shortFormatter.format(fullFormatter.parse(createdDate)));
        
       //System.out.println ("Successfully Parsed");
     } catch (Throwable t) {
       System.out.println("UNABLE TO PARSE: [" + line + "]");
     }
   }
-  
-
   
   /**
    * @return the statusID
@@ -216,15 +222,18 @@ public class TwitterStatus {
   /**
    * @return the createdDate
    */
-  public Date getCreatedDate() {
+  public String getCreatedDate() {
     return createdDate;
   }
 
   /**
    * @param createdDate the createdDate to set
    */
-  public void setCreatedDate(Date createdDate) {
+  public void setCreatedDate(String createdDate) {
     this.createdDate = createdDate;
+    try {
+      setShortDate(shortFormatter.format(fullFormatter.parse(createdDate)));
+    } catch (ParseException e) {e.printStackTrace();}
   }
 
   /**
@@ -253,5 +262,19 @@ public class TwitterStatus {
    */
   public void setGeoLon(double geoLon) {
     this.geoLon = geoLon;
+  }
+
+  /**
+   * @return the shortDate
+   */
+  public String getShortDate() {
+    return shortDate;
+  }
+
+  /**
+   * @param shortDate the shortDate to set
+   */
+  public void setShortDate(String shortDate) {
+    this.shortDate = shortDate;
   }
 }
