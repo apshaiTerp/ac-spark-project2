@@ -26,7 +26,7 @@ public class TwitterUser implements Serializable {
   /** The number of statuses (tweets) this user has posted */
   private int statusesCount;
   /** Custom value assigned to track user types */
-  private UserType userType;
+  private String userType;
   /** The location this user is found at, if available */
   private String location;
   
@@ -63,14 +63,8 @@ public class TwitterUser implements Serializable {
     followersCount = jsonUser.getInt("followersCount");
     friendsCount   = jsonUser.getInt("friendsCount");
     statusesCount  = jsonUser.getInt("statusesCount");
+    userType       = jsonUser.getString("userType");
     location       = jsonUser.getString("location");
-    
-    String typeString = jsonUser.getString("userType");
-    if (typeString.equalsIgnoreCase("COMMUNITY"))  userType = UserType.COMMUNITY;
-    if (typeString.equalsIgnoreCase("CONVENTION")) userType = UserType.CONVENTION;
-    if (typeString.equalsIgnoreCase("DESIGNER"))   userType = UserType.DESIGNER;
-    if (typeString.equalsIgnoreCase("PUBLISHER"))  userType = UserType.PUBLISHER;
-    if (typeString.equalsIgnoreCase("REVIEWER"))   userType = UserType.REVIEWER;
   }
   
   /*
@@ -169,14 +163,14 @@ public class TwitterUser implements Serializable {
   /**
    * @return the userType
    */
-  public UserType getUserType() {
+  public String getUserType() {
     return userType;
   }
 
   /**
    * @param userType the userType to set
    */
-  public void setUserType(UserType userType) {
+  public void setUserType(String userType) {
     this.userType = userType;
   }
 
