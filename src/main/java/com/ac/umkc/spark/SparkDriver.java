@@ -35,6 +35,8 @@ public class SparkDriver {
             private static final long serialVersionUID = 5654145143753968626L;
 
             public TwitterUser call(String line) throws Exception {
+              if (line.trim().length() == 0)
+                return null;
               TwitterUser user = new TwitterUser();
               user.parseFromJSON(line);
               return user;
