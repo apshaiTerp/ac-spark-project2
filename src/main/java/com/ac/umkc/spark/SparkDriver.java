@@ -30,6 +30,12 @@ public class SparkDriver {
   /** Reference to the valid SparkSession, which needs to be created in main() */
   private SparkSession sparkSession;
   
+  /**
+   * This is the basic constructor
+   * @param userPath the path to the user content in HDFS
+   * @param tweetPath the path to the tweet content in HDFS
+   * @param sparkSession Reference to the current spark session
+   */
   public SparkDriver(String userPath, String tweetPath, SparkSession sparkSession) {
     this.userPath     = userPath;
     this.tweetPath    = tweetPath;
@@ -47,8 +53,48 @@ public class SparkDriver {
           .config("spark.some.config.option", "some-value")
           .getOrCreate();
       
+      //New Approach for RDD
+      JavaRDD<TwitterUser> userRDD = spark.read().textFile(args[0]).javaRDD().map(
+          new Function<String, TwitterUser>() {
+            /** It wants it, so I gave it one */
+            private static final long serialVersionUID = 5654145143753968626L;
+
+            public TwitterUser call(String line) throws Exception {
+              TwitterUser user = new TwitterUser();
+              user.parseFromJSON(line);
+              return user;
+            }
+            
+          });
+      
+      JavaPairRDD<String, Integer> locations = userRDD.mapToPair(new PairFunction<TwitterUser, String, Integer>() {
+        /** Gave it cause it wants one. */
+        private static final long serialVersionUID = 7711668945522265992L;
+
+            public Tuple2<String, Integer> call(TwitterUser user) {
+              return new Tuple2<String, Integer>(user.getLocation(), 1);
+            }
+        });
+      
+      JavaPairRDD<String, Integer> sortLocations = locations.reduceByKey(new Function2<Integer, Integer, Integer>() {
+        /** Gave it cause it wants one. */
+        private static final long serialVersionUID = 1758905397312207150L;
+
+            public Integer call(Integer i1, Integer i2) {
+              return i1 + i2;
+            }
+        }).sortByKey();
+      
+      List<Tuple2<String, Integer>> results = sortLocations.takeOrdered(10, new LocationSorter());
+      for (Tuple2<String, Integer> tuple : results)
+        System.out.println ("(" + tuple._1() + "," + tuple._2() + ")");
+
+      
+      
       SparkDriver driver = new SparkDriver(args[0], args[1], spark);
-      driver.execute();
+      //driver.execute();
+      
+      
       
     } catch (Throwable t) {
       t.printStackTrace();
