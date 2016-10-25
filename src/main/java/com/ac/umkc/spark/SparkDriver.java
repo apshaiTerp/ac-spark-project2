@@ -89,7 +89,13 @@ public class SparkDriver implements Serializable {
             user.parseFromJSON(line);
             return user;
           }
-          
+        }).filter(new Function<TwitterUser, Boolean>() {
+          /** It wants it, so I gave it one */
+          private static final long serialVersionUID = -2462072955148041130L;
+
+          public Boolean call(TwitterUser user) {
+            return user.getLocation().length() > 0;
+          }
         });
     
     JavaPairRDD<String, Integer> locations = userRDD.mapToPair(new PairFunction<TwitterUser, String, Integer>() {
