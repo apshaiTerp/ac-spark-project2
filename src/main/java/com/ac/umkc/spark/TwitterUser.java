@@ -70,7 +70,7 @@ public class TwitterUser implements Serializable {
       friendsCount   = jsonUser.getInt("friendsCount");
       statusesCount  = jsonUser.getInt("statusesCount");
       userType       = jsonUser.getString("userType");
-      location       = jsonUser.getString("location");
+      location       = jsonUser.getString("location").trim();
        
       //System.out.println ("Successfully Parsed");
     } catch (Throwable t) {

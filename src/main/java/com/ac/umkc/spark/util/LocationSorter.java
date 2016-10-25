@@ -15,6 +15,9 @@ public class LocationSorter implements Comparator<Tuple2<String, Integer>>, Seri
   private static final long serialVersionUID = 1842363348761289758L;
 
   public int compare(Tuple2<String, Integer> arg0, Tuple2<String, Integer> arg1) {
-    return arg0._2().compareTo(arg1._2());
+    int partial = arg1._2().compareTo(arg0._2());
+    if (partial == 0)
+      return arg0._1().compareToIgnoreCase(arg1._1());
+    return partial;
   }
 }
