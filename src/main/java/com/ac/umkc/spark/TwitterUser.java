@@ -61,6 +61,10 @@ public class TwitterUser implements Serializable {
    * @param line the json content to be parsed
    */
   public void parseFromJSON(String line) {
+    //We need to handle exceptions
+    line.replace("\\", "\\\\");
+    
+    
     try {
       JSONObject jsonUser = new JSONObject(line);
       twitterID      = jsonUser.getLong("twitterID");
