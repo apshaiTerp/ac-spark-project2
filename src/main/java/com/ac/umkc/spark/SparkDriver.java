@@ -13,6 +13,7 @@ import org.apache.spark.sql.SparkSession;
 
 import com.ac.umkc.spark.util.LocationSorter;
 
+import scala.Serializable;
 import scala.Tuple2;
 
 
@@ -20,7 +21,10 @@ import scala.Tuple2;
  * @author AC010168
  *
  */
-public class SparkDriver {
+public class SparkDriver implements Serializable {
+  
+  /** Given because it wants it */
+  private static final long serialVersionUID = 2332538165677195031L;
   
   /** The users file location */
   private String userPath;
