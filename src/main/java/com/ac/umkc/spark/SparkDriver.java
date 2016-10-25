@@ -70,6 +70,7 @@ public class SparkDriver implements Serializable {
   public void execute() {
     
     executeQuery1();
+    executeQuery2();
   }
   
   /**
@@ -119,6 +120,65 @@ public class SparkDriver implements Serializable {
     List<Tuple2<String, Integer>> results = sortLocations.takeOrdered(10, new LocationSorter());
     for (Tuple2<String, Integer> tuple : results)
       System.out.println ("(" + tuple._1() + "," + tuple._2() + ")");
+  }
+  
+  /**
+   * This method should help us generate (and print) the top X most popular users.  
+   * This should only require the twitter data.  The gist of this query is
+   * 'Most popular users (based on likes and retweets per tweet as an average)'
+   */
+  private void executeQuery2() {
+    //Can do this in RDD or DataFrames
+    JavaRDD<TwitterStatus> tweetRDD = sparkSession.read().textFile(tweetPath).javaRDD().map(
+        new Function<String, TwitterStatus>() {
+          
+          /** It wants it, so I gave it one */
+          private static final long serialVersionUID = 1503107307123339206L;
+
+          public TwitterStatus call(String line) throws Exception {
+            TwitterStatus status = new TwitterStatus();
+            status.parseFromJSON(line);
+            return status;
+          }
+        });
+    
+    Dataset<Row> tweetDF = sparkSession.createDataFrame(tweetRDD, TwitterStatus.class);
+    tweetDF.createOrReplaceTempView("tweets");
+    
+    Dataset<Row> resultsDF = sparkSession.sql(
+        "SELECT userID, SUM(favoriteCount), SUM(retweetCount), COUNT(statusID) from tweets " + 
+        "GROUP BY userID ORDER BY COUNT(*) DESC");
+    
+    resultsDF.show();
+    
+    
+  }
+  
+  /**
+   * This method should help us generate (and print) the most commonly used hashtags
+   * per user group.  The gist of this query is 'Most common hashtags used per user 
+   * group (requires a join between user and tweet data sets?)'
+   */
+  private void executeQuery3() {
+    
+  }
+
+  /**
+   * This method should be used to help us generate (and print) the tweet frequency
+   * grouped by day and user group for a given hashtag.  The gist of this query is 
+   * 'Tweet frequency (per day)for a single hashtag (#GenCon) - Partition along date?'
+   */
+  private void executeQuery4() {
+    
+  }
+  
+  /**
+   * This method should be used to help us generate (and print) the last X tweets that
+   * mention a given topic as found in the twitter text.  The gist of this query is 
+   * 'Last X Tweets referencing a given game (i.e. Terraforming Mars)'
+   */
+  private void executeQuery5() {
+    
   }
   
   @SuppressWarnings("unused")
