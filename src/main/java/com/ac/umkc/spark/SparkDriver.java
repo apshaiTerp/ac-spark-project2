@@ -146,8 +146,8 @@ public class SparkDriver implements Serializable {
     tweetDF.createOrReplaceTempView("tweets");
     
     Dataset<Row> resultsDF = sparkSession.sql(
-        "SELECT userID, SUM(favoriteCount), SUM(retweetCount), COUNT(statusID) from tweets " + 
-        "GROUP BY userID ORDER BY COUNT(*) DESC");
+        "SELECT userName, AVG(favoriteCount), AVG(retweetCount), SUM(favoriteCount), SUM(retweetCount), COUNT(statusID) from tweets " + 
+        "GROUP BY userName ORDER BY COUNT(*) DESC");
     
     resultsDF.show();
     
