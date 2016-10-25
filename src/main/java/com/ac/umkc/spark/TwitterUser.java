@@ -64,13 +64,13 @@ public class TwitterUser implements Serializable {
     try {
       JSONObject jsonUser = new JSONObject(line);
       twitterID      = jsonUser.getLong("twitterID");
-      userName       = jsonUser.getString("userName");
+      try { userName = jsonUser.getString("userName"); } catch (Throwable t) { userName = "Not Parseable"; }
       screenName     = jsonUser.getString("screenName");
       followersCount = jsonUser.getInt("followersCount");
       friendsCount   = jsonUser.getInt("friendsCount");
       statusesCount  = jsonUser.getInt("statusesCount");
       userType       = jsonUser.getString("userType");
-      location       = jsonUser.getString("location").trim();
+      try { userName = location = jsonUser.getString("location").trim(); } catch (Throwable t) { location = "Not Parseable"; }
        
       //System.out.println ("Successfully Parsed");
     } catch (Throwable t) {
