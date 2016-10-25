@@ -63,7 +63,8 @@ public class TwitterUser implements Serializable {
   public void parseFromJSON(String line) {
     //We need to handle exceptions
     line.replace("\\", "\\\\");
-    
+    line.replace("?", "\\?");
+    line.replace("¯", "");
     
     try {
       JSONObject jsonUser = new JSONObject(line);
