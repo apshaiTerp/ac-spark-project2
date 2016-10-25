@@ -147,9 +147,11 @@ public class SparkDriver implements Serializable {
     
     Dataset<Row> resultsDF = sparkSession.sql(
         "SELECT userName, AVG(favoriteCount), AVG(retweetCount), SUM(favoriteCount), SUM(retweetCount), COUNT(statusID) from tweets " + 
-        "GROUP BY userName ORDER BY COUNT(*) DESC");
+        "GROUP BY userName ORDER BY AVG(retweetCount) DESC");
     
     resultsDF.show();
+    
+    
     
     
   }
