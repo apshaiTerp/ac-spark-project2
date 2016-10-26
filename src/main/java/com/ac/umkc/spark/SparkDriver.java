@@ -79,6 +79,16 @@ public class SparkDriver implements Serializable {
    * 'What are the top ten most popular locations where gamers are located'
    */
   private void executeQuery1() {
+    System.out.println ("*************************");
+    
+    Dataset<Row> df = sparkSession.read().json(userPath);
+    //df.show();
+    df.printSchema();
+
+    
+    System.out.println ("*************************");
+    System.out.println ("*************************");
+    
     //New Approach for RDD
     JavaRDD<TwitterUser> userRDD = sparkSession.read().textFile(userPath).javaRDD().map(
         new Function<String, TwitterUser>() {
@@ -186,6 +196,7 @@ public class SparkDriver implements Serializable {
   @SuppressWarnings("unused")
   private void dumpMethod() {
     Dataset<Row> df = sparkSession.read().json(userPath);
+    
     //df.show();
     df.printSchema();
     
