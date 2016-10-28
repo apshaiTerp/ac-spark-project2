@@ -115,7 +115,7 @@ public class TwitterUser implements Serializable {
    * @param userName the userName to set
    */
   public void setUserName(String userName) {
-    this.userName = userName;
+    this.userName = userName.trim();
   }
 
   /**
@@ -129,7 +129,7 @@ public class TwitterUser implements Serializable {
    * @param screenName the screenName to set
    */
   public void setScreenName(String screenName) {
-    this.screenName = screenName;
+    this.screenName = screenName.trim();
   }
 
   /**
@@ -199,6 +199,6 @@ public class TwitterUser implements Serializable {
    * @param location the location to set
    */
   public void setLocation(String location) {
-    this.location = location;
+    this.location = location.trim();
   }
 }
