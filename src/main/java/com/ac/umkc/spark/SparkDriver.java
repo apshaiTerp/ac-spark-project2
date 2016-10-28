@@ -309,7 +309,9 @@ public class SparkDriver implements Serializable {
         "GROUP BY u.userType, t.shortDate " + 
         "ORDER BY u.userType, t.shortDate");
     
-    resultsDF.show();
+    long rowsFound = resultsDF.count();
+    resultsDF.show((int)rowsFound);
+    System.out.println ("Number of rows found: " + rowsFound);
 
     System.out.println ("-------------------------------------------------------------------------");
     System.out.println ("-----------------------------  End Query 4  -----------------------------");
