@@ -75,6 +75,7 @@ public class SparkDriver implements Serializable {
     executeQuery1();
     executeQuery2();
     executeQuery3();
+    executeQuery4("boardgames");
   }
   
   /**
@@ -245,15 +246,71 @@ public class SparkDriver implements Serializable {
    * This method should be used to help us generate (and print) the tweet frequency
    * grouped by day and user group for a given hashtag.  The gist of this query is 
    * 'Tweet frequency (per day)for a single hashtag (#GenCon) - Partition along date?'
+   * 
+   * @param searchTerm the hashTag we want to find
    */
-  @SuppressWarnings("unused")
-  private void executeQuery4() {
+  private void executeQuery4(String searchTerm) {
     System.out.println ("*************************************************************************");
     System.out.println ("***************************  Execute Query 4  ***************************");
     System.out.println ("*************************************************************************");
     
+    //Need a final value so it can be passed through the lower methods
+    final String searchFor = searchTerm;
     
+    //Open our dataset, then filter out to matching hash tags
+    JavaRDD<TwitterStatus> tweetRDD = sparkSession.read().textFile(tweetPath).javaRDD().map(
+        new Function<String, TwitterStatus>() {
+          
+          /** It wants it, so I gave it one */
+          private static final long serialVersionUID = 1503107307123339206L;
+
+          public TwitterStatus call(String line) throws Exception {
+            TwitterStatus status = new TwitterStatus();
+            status.parseFromJSON(line);
+            return status;
+          }
+        }).filter(new Function<TwitterStatus, Boolean>() {
+              /** It wants it, so I gave it one */
+              private static final long serialVersionUID = 113462456123339206L;
+
+              public Boolean call(TwitterStatus status) throws Exception {
+                boolean found = false;
+                for (String compareTerm : status.getHashTags()) {
+                  if (searchFor.equalsIgnoreCase(compareTerm))
+                    found = true;
+                }
+                return found;
+              }
+         });
+
+    Dataset<Row> tweetDF = sparkSession.createDataFrame(tweetRDD, TwitterStatus.class);
+    tweetDF.createOrReplaceTempView("tweets");
     
+    //New Approach for RDD
+    JavaRDD<TwitterUser> userRDD = sparkSession.read().textFile(userPath).javaRDD().map(
+        new Function<String, TwitterUser>() {
+          /** It wants it, so I gave it one */
+          private static final long serialVersionUID = 5654145143753968626L;
+
+          public TwitterUser call(String line) throws Exception {
+            TwitterUser user = new TwitterUser();
+            user.parseFromJSON(line);
+            return user;
+          }
+        });
+    
+    Dataset<Row> userDF = sparkSession.createDataFrame(userRDD, TwitterUser.class);
+    userDF.createOrReplaceTempView("users");
+    
+    Dataset<Row> resultsDF = sparkSession.sql("Select u.userType, t.shortDate, count(t.statusID) " +
+        "FROM tweets t " + 
+        "JOIN users u " +
+        "ON t.userID = u.twitterID " + 
+        "GROUP BY u.userType, t.shortDate " + 
+        "ORDER BY u.userType, t.shortDate");
+    
+    resultsDF.show();
+
     System.out.println ("-------------------------------------------------------------------------");
     System.out.println ("-----------------------------  End Query 4  -----------------------------");
     System.out.println ("-------------------------------------------------------------------------");
