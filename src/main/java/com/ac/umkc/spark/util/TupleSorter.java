@@ -9,7 +9,7 @@ import scala.Tuple2;
  * @author AC010168
  *
  */
-public class LocationSorter implements Comparator<Tuple2<String, Integer>>, Serializable {
+public class TupleSorter implements Comparator<Tuple2<String, Integer>>, Serializable {
 
   /** Adding because it wants it */
   private static final long serialVersionUID = 1842363348761289758L;

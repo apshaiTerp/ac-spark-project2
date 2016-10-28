@@ -17,7 +17,7 @@ import org.apache.spark.sql.SparkSession;
 import scala.Serializable;
 import scala.Tuple2;
 
-import com.ac.umkc.spark.util.LocationSorter;
+import com.ac.umkc.spark.util.TupleSorter;
 
 
 /**
@@ -125,7 +125,7 @@ public class SparkDriver implements Serializable {
           }
       }).sortByKey();
     
-    List<Tuple2<String, Integer>> results = sortLocations.takeOrdered(10, new LocationSorter());
+    List<Tuple2<String, Integer>> results = sortLocations.takeOrdered(10, new TupleSorter());
     for (Tuple2<String, Integer> tuple : results)
       System.out.println ("(" + tuple._1() + "," + tuple._2() + ")");
 
@@ -224,9 +224,10 @@ public class SparkDriver implements Serializable {
           public Integer call(Integer i1, Integer i2) {
             return i1 + i2;
           }
-        }).sortByKey(false);
+        });
     
-    List<Tuple2<String, Integer>> results = hashTags.take(10);
+    //Take the top 10 ordered results
+    List<Tuple2<String, Integer>> results = hashTags.takeOrdered(10, new TupleSorter());
     System.out.println ("The Top 10 HashTags in use are:");
     int count = 0;
     
@@ -245,6 +246,7 @@ public class SparkDriver implements Serializable {
    * grouped by day and user group for a given hashtag.  The gist of this query is 
    * 'Tweet frequency (per day)for a single hashtag (#GenCon) - Partition along date?'
    */
+  @SuppressWarnings("unused")
   private void executeQuery4() {
     System.out.println ("*************************************************************************");
     System.out.println ("***************************  Execute Query 4  ***************************");
@@ -262,6 +264,7 @@ public class SparkDriver implements Serializable {
    * mention a given topic as found in the twitter text.  The gist of this query is 
    * 'Last X Tweets referencing a given game (i.e. Terraforming Mars)'
    */
+  @SuppressWarnings("unused")
   private void executeQuery5() {
     System.out.println ("*************************************************************************");
     System.out.println ("***************************  Execute Query 5  ***************************");
