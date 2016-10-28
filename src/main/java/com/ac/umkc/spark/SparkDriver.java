@@ -1,20 +1,23 @@
 package com.ac.umkc.spark;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.api.java.function.PairFlatMapFunction;
 import org.apache.spark.api.java.function.PairFunction;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
 
-import com.ac.umkc.spark.util.LocationSorter;
-
 import scala.Serializable;
 import scala.Tuple2;
+
+import com.ac.umkc.spark.util.LocationSorter;
 
 
 /**
@@ -71,6 +74,7 @@ public class SparkDriver implements Serializable {
     
     executeQuery1();
     executeQuery2();
+    executeQuery3();
   }
   
   /**
@@ -79,15 +83,9 @@ public class SparkDriver implements Serializable {
    * 'What are the top ten most popular locations where gamers are located'
    */
   private void executeQuery1() {
-    System.out.println ("*************************");
-    
-    Dataset<Row> df = sparkSession.read().json(userPath);
-    //df.show();
-    df.printSchema();
-
-    
-    System.out.println ("*************************");
-    System.out.println ("*************************");
+    System.out.println ("*************************************************************************");
+    System.out.println ("***************************  Execute Query 1  ***************************");
+    System.out.println ("*************************************************************************");
     
     //New Approach for RDD
     JavaRDD<TwitterUser> userRDD = sparkSession.read().textFile(userPath).javaRDD().map(
@@ -130,6 +128,10 @@ public class SparkDriver implements Serializable {
     List<Tuple2<String, Integer>> results = sortLocations.takeOrdered(10, new LocationSorter());
     for (Tuple2<String, Integer> tuple : results)
       System.out.println ("(" + tuple._1() + "," + tuple._2() + ")");
+
+    System.out.println ("-------------------------------------------------------------------------");
+    System.out.println ("-----------------------------  End Query 1  -----------------------------");
+    System.out.println ("-------------------------------------------------------------------------");
   }
   
   /**
@@ -138,6 +140,10 @@ public class SparkDriver implements Serializable {
    * 'Most popular users (based on likes and retweets per tweet as an average)'
    */
   private void executeQuery2() {
+    System.out.println ("*************************************************************************");
+    System.out.println ("***************************  Execute Query 2  ***************************");
+    System.out.println ("*************************************************************************");
+    
     //Can do this in RDD or DataFrames
     JavaRDD<TwitterStatus> tweetRDD = sparkSession.read().textFile(tweetPath).javaRDD().map(
         new Function<String, TwitterStatus>() {
@@ -160,10 +166,10 @@ public class SparkDriver implements Serializable {
         "GROUP BY userName ORDER BY AVG(retweetCount) DESC");
     
     resultsDF.show();
-    
-    
-    
-    
+
+    System.out.println ("-------------------------------------------------------------------------");
+    System.out.println ("-----------------------------  End Query 2  -----------------------------");
+    System.out.println ("-------------------------------------------------------------------------");
   }
   
   /**
@@ -172,7 +178,66 @@ public class SparkDriver implements Serializable {
    * group (requires a join between user and tweet data sets?)'
    */
   private void executeQuery3() {
+    System.out.println ("*************************************************************************");
+    System.out.println ("***************************  Execute Query 3  ***************************");
+    System.out.println ("*************************************************************************");
     
+    //Convert our tweet file into objects, then filter down to only tweets with Hash Tags
+    JavaRDD<TwitterStatus> tweetRDD = sparkSession.read().textFile(tweetPath).javaRDD().map(
+        new Function<String, TwitterStatus>() {
+          
+          /** It wants it, so I gave it one */
+          private static final long serialVersionUID = 1503107307123339206L;
+
+          public TwitterStatus call(String line) throws Exception {
+            TwitterStatus status = new TwitterStatus();
+            status.parseFromJSON(line);
+            return status;
+          }
+        }).filter(        
+        new Function<TwitterStatus, Boolean>() {
+      /** It wants it, so I gave it one */
+      private static final long serialVersionUID = 113462456123339206L;
+
+      public Boolean call(TwitterStatus status) throws Exception {
+        return ((status.getHashTags() != null) && (status.getHashTags().size() > 0));
+      }
+    });
+
+    //Flat map our individual hashTags to Tuples of (hashTag, count), then
+    //run the aggregating reduce operation, and sort in descending order
+    JavaPairRDD<String, Integer> hashTags = tweetRDD.flatMapToPair(
+        new PairFlatMapFunction<TwitterStatus, String, Integer>() {
+          /** It wants it, so I gave it one */
+          private static final long serialVersionUID = 6310698767617690806L;
+
+          public Iterator<Tuple2<String, Integer>> call(TwitterStatus status) {
+            List<Tuple2<String, Integer>> results = new ArrayList<Tuple2<String, Integer>>(status.getHashTags().size());
+            for (String hashTag : status.getHashTags())
+              results.add(new Tuple2<String, Integer>(hashTag, 1));
+            return results.iterator();
+          }
+        }).reduceByKey(new Function2<Integer, Integer, Integer>() {
+          /** It wants it, so I gave it one */
+          private static final long serialVersionUID = -4583081102611123090L;
+
+          public Integer call(Integer i1, Integer i2) {
+            return i1 + i2;
+          }
+        }).sortByKey(false);
+    
+    List<Tuple2<String, Integer>> results = hashTags.take(10);
+    System.out.println ("The Top 10 HashTags in use are:");
+    int count = 0;
+    
+    for (Tuple2<String, Integer> tuple : results) {
+      count++;
+      System.out.println (count + ")  " + tuple._1() + "  (" + tuple._2() + ")");
+    }
+    
+    System.out.println ("-------------------------------------------------------------------------");
+    System.out.println ("-----------------------------  End Query 3  -----------------------------");
+    System.out.println ("-------------------------------------------------------------------------");
   }
 
   /**
@@ -181,7 +246,15 @@ public class SparkDriver implements Serializable {
    * 'Tweet frequency (per day)for a single hashtag (#GenCon) - Partition along date?'
    */
   private void executeQuery4() {
+    System.out.println ("*************************************************************************");
+    System.out.println ("***************************  Execute Query 4  ***************************");
+    System.out.println ("*************************************************************************");
     
+    
+    
+    System.out.println ("-------------------------------------------------------------------------");
+    System.out.println ("-----------------------------  End Query 4  -----------------------------");
+    System.out.println ("-------------------------------------------------------------------------");
   }
   
   /**
@@ -190,7 +263,15 @@ public class SparkDriver implements Serializable {
    * 'Last X Tweets referencing a given game (i.e. Terraforming Mars)'
    */
   private void executeQuery5() {
+    System.out.println ("*************************************************************************");
+    System.out.println ("***************************  Execute Query 5  ***************************");
+    System.out.println ("*************************************************************************");
     
+    
+    
+    System.out.println ("-------------------------------------------------------------------------");
+    System.out.println ("-----------------------------  End Query 5  -----------------------------");
+    System.out.println ("-------------------------------------------------------------------------");
   }
   
   @SuppressWarnings("unused")
