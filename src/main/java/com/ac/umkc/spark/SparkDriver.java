@@ -122,7 +122,8 @@ public class SparkDriver implements Serializable {
         executeQuery4(hashTag, startDate, endDate);
       } else if (choice.equalsIgnoreCase("5")) {
         System.out.print ("Please enter a Search Term (You may include HashTags): ");
-        final String searchTerm = reader.nextLine();
+        String searchTerm = reader.next();
+        while (reader.hasNext()) searchTerm += " " + reader.next();
         System.out.print ("How many results do you want returned: ");
         final int rowLimit = reader.nextInt();
         executeQuery5(searchTerm, rowLimit);
