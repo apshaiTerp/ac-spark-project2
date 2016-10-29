@@ -78,7 +78,7 @@ public class SparkDriver implements Serializable {
   public void execute() {
     
     executeQuery1();
-    executeQuery2();
+    executeQuery2("2016.06.01", "2016.12.31");
     executeQuery3();
     executeQuery4("boardgames");
     executeQuery5("Terraforming Mars", 20);
@@ -144,9 +144,12 @@ public class SparkDriver implements Serializable {
   /**
    * This method should help us generate (and print) the top X most popular users.  
    * This should only require the twitter data.  The gist of this query is
-   * 'Most popular users (based on likes and retweets per tweet as an average)'
+   * 'Most popular users (based on likes and retweets per tweet as an average).
+   * 
+   * @param startDate The beginning date for our date range (inclusive)
+   * @param endDate The ending date for our date range (inclusive)
    */
-  private void executeQuery2() {
+  private void executeQuery2(String startDate, String endDate) {
     System.out.println ("*************************************************************************");
     System.out.println ("***************************  Execute Query 2  ***************************");
     System.out.println ("*************************************************************************");
@@ -170,6 +173,7 @@ public class SparkDriver implements Serializable {
     
     Dataset<Row> resultsDF = sparkSession.sql(
         "SELECT userName, AVG(favoriteCount), AVG(retweetCount), SUM(favoriteCount), SUM(retweetCount), COUNT(statusID) from tweets " + 
+        "WHERE shortDate >= '" + startDate + "' and shortDate <= '" + endDate + "' " +
         "GROUP BY userName ORDER BY AVG(retweetCount) DESC");
     
     resultsDF.show();
