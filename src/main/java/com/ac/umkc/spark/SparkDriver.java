@@ -113,7 +113,7 @@ public class SparkDriver implements Serializable {
         final String endDate   = reader.next();
         executeQuery3(startDate, endDate);
       } else if (choice.equalsIgnoreCase("4")) {
-        System.out.println ("Please enter a HashTag (Do not include the #): ");
+        System.out.print ("Please enter a HashTag (Do not include the #): ");
         final String hashTag = reader.next();
         System.out.print ("Please enter a Start Date (as YYYY.MM.DD): ");
         final String startDate = reader.next();
