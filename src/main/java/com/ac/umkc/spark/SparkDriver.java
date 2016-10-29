@@ -358,7 +358,7 @@ public class SparkDriver implements Serializable {
     tweetDF.createOrReplaceTempView("tweets");
     
     Dataset<Row> results = sparkSession.sql("SELECT userName, statusID, createdDate FROM tweets " + 
-        "WHERE LOWER(filteredText) = \"*" + searchFor + "*\"");
+        "WHERE LOWER(filteredText) LIKE '%" + searchFor + "%'");
     
     System.out.println ("Results found:" + results.count());
     
