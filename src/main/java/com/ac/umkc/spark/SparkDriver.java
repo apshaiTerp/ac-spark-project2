@@ -69,10 +69,8 @@ public class SparkDriver implements Serializable {
           .getOrCreate();
       
       SparkDriver driver = new SparkDriver(args[0], args[1], spark);
-      driver.execute();
-      
-      
-      
+      //driver.execute();
+      driver.executeNonInteractive();
     } catch (Throwable t) {
       t.printStackTrace();
     }
@@ -135,6 +133,17 @@ public class SparkDriver implements Serializable {
     reader.close();
   }
   
+  /**
+   * Helper method to allow me to run the program in a non-interactive fashion to gather logging data
+   */
+  public void executeNonInteractive() {
+    executeQuery1();
+    executeQuery2("2016.01.01", "2016.10.31");
+    executeQuery3("2016.01.01", "2016.10.31");
+    executeQuery4("GenCon2016", "2016.01.01", "2016.10.31");
+    executeQuery5("Terraforming Mars", 20);
+  }
+
   /**
    * This method should help us generate (and print) the top 10 most popular locations
    * for gamers.  This should only require the user data.  The gist of this query is
