@@ -4,9 +4,12 @@ import oauth.signpost.OAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
@@ -36,9 +39,10 @@ public class TwitterCall {
    * 
    * @return A valid object with our extra status information in it, or null.
    */
+  @SuppressWarnings({ "deprecation", "resource" })
   public static TwitterStatusExtras getTweet(long statusID) {
-    CloseableHttpClient   client   = null;
-    CloseableHttpResponse response = null;
+    HttpClient   client   = null;
+    HttpResponse response = null;
     
     String twitterURL          = null;
     String responseString      = null;
@@ -48,7 +52,7 @@ public class TwitterCall {
       OAuthConsumer consumer = new CommonsHttpOAuthConsumer(CONSUMER_KEY, CONSUMER_SECRET);
       consumer.setTokenWithSecret(ACCESS_TOKEN, ACCESS_TOKEN_SECRET);
       
-      client = HttpClients.createDefault();
+      client = new DefaultHttpClient();
       
       twitterURL = "https://api.twitter.com/1.1/statuses/lookup.json?id=" + statusID;
       
@@ -92,6 +96,8 @@ public class TwitterCall {
       
       status.setStatusID(singleTweet.getLong("id"));
       status.setStatusText(singleTweet.getString("text"));
+      
+      
 
       return status;
     } catch (Throwable t) {
