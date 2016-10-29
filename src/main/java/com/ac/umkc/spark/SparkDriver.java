@@ -78,9 +78,9 @@ public class SparkDriver implements Serializable {
   public void execute() {
     
     executeQuery1();
-    executeQuery2("2016.06.01", "2016.12.31");
-    executeQuery3();
-    executeQuery4("boardgames");
+    executeQuery2("2016.01.01", "2016.12.31");
+    executeQuery3("2016.01.01", "2016.12.31");
+    executeQuery4("boardgames", "2016.01.01", "2016.12.31");
     executeQuery5("Terraforming Mars", 20);
   }
   
@@ -187,8 +187,11 @@ public class SparkDriver implements Serializable {
    * This method should help us generate (and print) the most commonly used hashtags
    * per user group.  The gist of this query is 'Most common hashtags used per user 
    * group (requires a join between user and tweet data sets?)'
+   * 
+   * @param startDate The beginning date for our date range (inclusive)
+   * @param endDate The ending date for our date range (inclusive)
    */
-  private void executeQuery3() {
+  private void executeQuery3(final String startDate, final String endDate) {
     System.out.println ("*************************************************************************");
     System.out.println ("***************************  Execute Query 3  ***************************");
     System.out.println ("*************************************************************************");
@@ -211,7 +214,9 @@ public class SparkDriver implements Serializable {
       private static final long serialVersionUID = 113462456123339206L;
 
       public Boolean call(TwitterStatus status) throws Exception {
-        return ((status.getHashTags() != null) && (status.getHashTags().size() > 0));
+        if ((status.getShortDate().compareTo(startDate) >= 0) && (status.getShortDate().compareTo(endDate) <= 0))
+          return ((status.getHashTags() != null) && (status.getHashTags().size() > 0));
+        return false;
       }
     });
 
@@ -258,17 +263,16 @@ public class SparkDriver implements Serializable {
    * 'Tweet frequency (per day)for a single hashtag (#GenCon) - Partition along date?'
    * 
    * @param searchTerm the hashTag we want to find
+   * @param startDate The beginning date for our date range (inclusive)
+   * @param endDate The ending date for our date range (inclusive)
    */
-  private void executeQuery4(String searchTerm) {
+  private void executeQuery4(final String searchTerm, final String startDate, final String endDate) {
     
     //TODO - Consider Adding Start and Stop Date Range, which would be added to the filter
     
     System.out.println ("*************************************************************************");
     System.out.println ("***************************  Execute Query 4  ***************************");
     System.out.println ("*************************************************************************");
-    
-    //Need a final value so it can be passed through the lower methods
-    final String searchFor = searchTerm;
     
     //Open our dataset, then filter out to matching hash tags
     JavaRDD<TwitterStatus> tweetRDD = sparkSession.read().textFile(tweetPath).javaRDD().map(
@@ -287,12 +291,15 @@ public class SparkDriver implements Serializable {
               private static final long serialVersionUID = 113462456123339206L;
 
               public Boolean call(TwitterStatus status) throws Exception {
-                boolean found = false;
-                for (String compareTerm : status.getHashTags()) {
-                  if (searchFor.equalsIgnoreCase(compareTerm))
-                    found = true;
+                if ((status.getShortDate().compareTo(startDate) >= 0) && (status.getShortDate().compareTo(endDate) <= 0)) {
+                  boolean found = false;
+                  for (String compareTerm : status.getHashTags()) {
+                    if (searchTerm.equalsIgnoreCase(compareTerm))
+                      found = true;
+                  }
+                  return found;
                 }
-                return found;
+                return false;
               }
          });
 
