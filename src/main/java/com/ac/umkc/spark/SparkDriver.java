@@ -3,6 +3,7 @@ package com.ac.umkc.spark;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Scanner;
 
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -55,7 +56,9 @@ public class SparkDriver implements Serializable {
   }
   
   /**
-   * @param args
+   * System main method.
+   * 
+   * @param args The command line paramters.  We are expecting to receive 2 entries.
    */
   public static void main(String[] args) {
     try {
@@ -75,13 +78,59 @@ public class SparkDriver implements Serializable {
     }
   }
   
+  /**
+   * Main Method for executing our game logic.
+   */
   public void execute() {
-    
-    executeQuery1();
-    executeQuery2("2016.01.01", "2016.12.31");
-    executeQuery3("2016.01.01", "2016.12.31");
-    executeQuery4("boardgames", "2016.01.01", "2016.12.31");
-    executeQuery5("Terraforming Mars", 20);
+    Scanner reader = new Scanner(System.in);
+    while (true) {
+      System.out.println ("Welcome to the Board Game Twitter Query Utility.  Please choose from the Options Below:");
+      System.out.println ("---------------------------------------------------------------------------------------");
+      System.out.println ("(1) Top 10 Locations where Board Gamers live.");
+      System.out.println ("(2) Most Popular Users (based on likes and retweets) for a provided time range.");
+      System.out.println ("(3) Most Commonly Used HashTags by Board Gamers for a provided time range.");
+      System.out.println ("(4) Times per Day Board Game Users Groups use a provided HashTag.");
+      System.out.println ("(5) Last X Tweets among Board Gamers that reference a provided Game or Term");
+      System.out.println ("(X) Exit Program");
+      
+      System.out.print ("Your Choice: ");
+      String choice = reader.next();
+      
+      if (choice.equalsIgnoreCase("X"))
+        break;
+      else if (choice.equalsIgnoreCase("1"))
+        executeQuery1();
+      else if (choice.equalsIgnoreCase("2")) {
+        System.out.print ("Please enter a Start Date (as YYYY.MM.DD): ");
+        final String startDate = reader.next();
+        System.out.print ("Please enter an End Date  (as YYYY.MM.DD): ");
+        final String endDate   = reader.next();
+        executeQuery2(startDate, endDate);
+      } else if (choice.equalsIgnoreCase("3")) {
+        System.out.print ("Please enter a Start Date (as YYYY.MM.DD): ");
+        final String startDate = reader.next();
+        System.out.print ("Please enter an End Date  (as YYYY.MM.DD): ");
+        final String endDate   = reader.next();
+        executeQuery3(startDate, endDate);
+      } else if (choice.equalsIgnoreCase("4")) {
+        System.out.println ("Please enter a HashTag (Do not include the #): ");
+        final String hashTag = reader.next();
+        System.out.print ("Please enter a Start Date (as YYYY.MM.DD): ");
+        final String startDate = reader.next();
+        System.out.print ("Please enter an End Date  (as YYYY.MM.DD): ");
+        final String endDate   = reader.next();
+        executeQuery4(hashTag, startDate, endDate);
+      } else if (choice.equalsIgnoreCase("5")) {
+        System.out.print ("Please enter a Search Term (You may include HashTags): ");
+        final String searchTerm = reader.next();
+        System.out.print ("How many results do you want returned: ");
+        final int rowLimit = reader.nextInt();
+        executeQuery5(searchTerm, rowLimit);
+      } else {
+        System.out.println ("The provided choice was not valid.");
+      }
+    }
+    reader.close();
   }
   
   /**
@@ -184,9 +233,8 @@ public class SparkDriver implements Serializable {
   }
   
   /**
-   * This method should help us generate (and print) the most commonly used hashtags
-   * per user group.  The gist of this query is 'Most common hashtags used per user 
-   * group (requires a join between user and tweet data sets?)'
+   * This method should help us generate (and print) the most commonly used hashtags.  The gist of this 
+   * query is 'Most common hashtags used during the provided date range.'
    * 
    * @param startDate The beginning date for our date range (inclusive)
    * @param endDate The ending date for our date range (inclusive)
@@ -267,9 +315,6 @@ public class SparkDriver implements Serializable {
    * @param endDate The ending date for our date range (inclusive)
    */
   private void executeQuery4(final String searchTerm, final String startDate, final String endDate) {
-    
-    //TODO - Consider Adding Start and Stop Date Range, which would be added to the filter
-    
     System.out.println ("*************************************************************************");
     System.out.println ("***************************  Execute Query 4  ***************************");
     System.out.println ("*************************************************************************");
