@@ -83,6 +83,8 @@ public class SparkDriver implements Serializable {
    */
   public void execute() {
     Scanner reader = new Scanner(System.in);
+    reader.useDelimiter("\\n");
+    
     while (true) {
       System.out.println ("Welcome to the Board Game Twitter Query Utility.  Please choose from the Options Below:");
       System.out.println ("---------------------------------------------------------------------------------------");
@@ -123,7 +125,6 @@ public class SparkDriver implements Serializable {
       } else if (choice.equalsIgnoreCase("5")) {
         System.out.print ("Please enter a Search Term (You may include HashTags): ");
         String searchTerm = reader.next();
-        while (reader.hasNext()) searchTerm += " " + reader.next();
         System.out.print ("How many results do you want returned: ");
         final int rowLimit = reader.nextInt();
         executeQuery5(searchTerm, rowLimit);
