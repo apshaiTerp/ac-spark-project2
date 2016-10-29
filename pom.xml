@@ -33,8 +33,17 @@
   <properties>
     <!--  Dependency Versions  -->  
     <ac.spark.version>2.0.0</ac.spark.version>
+    
+    <ac.commons.codec.version>1.10</ac.commons.codec.version>
+    <ac.commons.io.version>2.5</ac.commons.io.version>
+    <ac.commons.logging.version>1.2</ac.commons.logging.version>
+    
+    <ac.httpclient.version>4.5.2</ac.httpclient.version>
+    <ac.httpcore.version>4.4.5</ac.httpcore.version>
 
     <ac.json.version>20160810</ac.json.version>
+    
+    <ac.oauth.signpost.version>1.2.1.2</ac.oauth.signpost.version>
 
     <junit.version>4.11</junit.version>
     
@@ -67,6 +76,48 @@
       <artifactId>json</artifactId>
       <version>${ac.json.version}</version>
     </dependency> 
+
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>${ac.commons.io.version}</version>
+    </dependency>   
+    
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>${ac.commons.codec.version}</version>
+    </dependency>   
+    
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>${ac.commons.logging.version}</version>
+    </dependency>   
+    
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpcore</artifactId>
+      <version>${ac.httpcore.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>${ac.httpclient.version}</version>
+    </dependency>
+     
+    <dependency>
+      <groupId>oauth.signpost</groupId>
+      <artifactId>signpost-core</artifactId>
+      <version>${ac.oauth.signpost.version}</version>
+    </dependency>   
+    
+    <dependency>
+      <groupId>oauth.signpost</groupId>
+      <artifactId>signpost-commonshttp4</artifactId>
+      <version>${ac.oauth.signpost.version}</version>
+    </dependency>   
 
     <!-- Test Dependencies -->
     <dependency>

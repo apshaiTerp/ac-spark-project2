@@ -1,4 +1,4 @@
-package com.ac.umkc.spark;
+package com.ac.umkc.spark.data;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

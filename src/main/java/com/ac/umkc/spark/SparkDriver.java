@@ -17,6 +17,8 @@ import org.apache.spark.sql.SparkSession;
 import scala.Serializable;
 import scala.Tuple2;
 
+import com.ac.umkc.spark.data.TwitterStatus;
+import com.ac.umkc.spark.data.TwitterUser;
 import com.ac.umkc.spark.util.TupleSorter;
 
 
@@ -76,6 +78,7 @@ public class SparkDriver implements Serializable {
     executeQuery2();
     executeQuery3();
     executeQuery4("boardgames");
+    executeQuery5("Terraforming Mars", 20);
   }
   
   /**
@@ -250,6 +253,9 @@ public class SparkDriver implements Serializable {
    * @param searchTerm the hashTag we want to find
    */
   private void executeQuery4(String searchTerm) {
+    
+    //TODO - Consider Adding Start and Stop Date Range, which would be added to the filter
+    
     System.out.println ("*************************************************************************");
     System.out.println ("***************************  Execute Query 4  ***************************");
     System.out.println ("*************************************************************************");
@@ -322,14 +328,39 @@ public class SparkDriver implements Serializable {
    * This method should be used to help us generate (and print) the last X tweets that
    * mention a given topic as found in the twitter text.  The gist of this query is 
    * 'Last X Tweets referencing a given game (i.e. Terraforming Mars)'
+   * 
+   * @param searchTerm the term we want to search for
+   * @param termLimit the number of terms we want to find.
    */
-  @SuppressWarnings("unused")
-  private void executeQuery5() {
+  private void executeQuery5(String searchTerm, int termLimit) {
     System.out.println ("*************************************************************************");
     System.out.println ("***************************  Execute Query 5  ***************************");
     System.out.println ("*************************************************************************");
     
+    final String searchFor = searchTerm.toLowerCase();
+    //final int rowCount     = termLimit;
     
+    //Open our dataset, then filter out to matching hash tags
+    JavaRDD<TwitterStatus> tweetRDD = sparkSession.read().textFile(tweetPath).javaRDD().map(
+        new Function<String, TwitterStatus>() {
+          
+          /** It wants it, so I gave it one */
+          private static final long serialVersionUID = 1503107307123339206L;
+
+          public TwitterStatus call(String line) throws Exception {
+            TwitterStatus status = new TwitterStatus();
+            status.parseFromJSON(line);
+            return status;
+          }
+        });
+    
+    Dataset<Row> tweetDF = sparkSession.createDataFrame(tweetRDD, TwitterStatus.class);
+    tweetDF.createOrReplaceTempView("tweets");
+    
+    Dataset<Row> results = sparkSession.sql("SELECT userName, statusID, createdDate FROM tweets " + 
+        "WHERE LOWER(filteredText) = \"*" + searchFor + "*\"");
+    
+    System.out.println ("Results found:" + results.count());
     
     System.out.println ("-------------------------------------------------------------------------");
     System.out.println ("-----------------------------  End Query 5  -----------------------------");
