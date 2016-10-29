@@ -11,6 +11,7 @@ import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
 import org.apache.spark.api.java.function.PairFunction;
+import org.apache.spark.sql.Column;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SparkSession;
@@ -217,7 +218,6 @@ public class SparkDriver implements Serializable {
     //Can do this in RDD or DataFrames
     JavaRDD<TwitterStatus> tweetRDD = sparkSession.read().textFile(tweetPath).javaRDD().map(
         new Function<String, TwitterStatus>() {
-          
           /** It wants it, so I gave it one */
           private static final long serialVersionUID = 1503107307123339206L;
 
@@ -231,13 +231,38 @@ public class SparkDriver implements Serializable {
     Dataset<Row> tweetDF = sparkSession.createDataFrame(tweetRDD, TwitterStatus.class);
     tweetDF.createOrReplaceTempView("tweets");
     
-    Dataset<Row> resultsDF = sparkSession.sql(
-        "SELECT userName, AVG(favoriteCount), AVG(retweetCount), SUM(favoriteCount), SUM(retweetCount), COUNT(statusID) from tweets " + 
-        "WHERE shortDate >= '" + startDate + "' and shortDate <= '" + endDate + "' " +
-        "GROUP BY userName ORDER BY AVG(retweetCount) DESC");
-    
-    resultsDF.show();
+    //New Approach for RDD
+    JavaRDD<TwitterUser> userRDD = sparkSession.read().textFile(userPath).javaRDD().map(
+        new Function<String, TwitterUser>() {
+          /** It wants it, so I gave it one */
+          private static final long serialVersionUID = 5654145143753968626L;
 
+          public TwitterUser call(String line) throws Exception {
+            TwitterUser user = new TwitterUser();
+            user.parseFromJSON(line);
+            return user;
+          }
+        });
+    
+    Dataset<Row> userDF = sparkSession.createDataFrame(userRDD, TwitterUser.class);
+    userDF.createOrReplaceTempView("users");
+
+    Dataset<Row> resultsDF = sparkSession.sql(
+        "SELECT u.userType, u.screenName, u.userName, AVG(t.favoriteCount + t.retweetCount), COUNT(t.statusID) " + 
+        "FROM tweets t " +
+        "JOIN users u " + 
+        "ON t.userName = u.screenName " + 
+        "WHERE t.shortDate >= '" + startDate + "' and t.shortDate <= '" + endDate + "' " +
+        "GROUP BY u.userType, u.screenName, u.userName " + 
+        "ORDER BY AVG(t.favoriteCount + t.retweetCount) DESC");
+
+    //Let's sample the top 10 most popular from each group
+    resultsDF.filter(new Column("userType").equalTo("DESIGNER")).show(10);
+    resultsDF.filter(new Column("userType").equalTo("PUBLISHER")).show(10);
+    resultsDF.filter(new Column("userType").equalTo("REVIEWER")).show(10);
+    resultsDF.filter(new Column("userType").equalTo("CONVENTION")).show(10);
+    resultsDF.filter(new Column("userType").equalTo("COMMUNITY")).show(10);
+    
     System.out.println ("-------------------------------------------------------------------------");
     System.out.println ("-----------------------------  End Query 2  -----------------------------");
     System.out.println ("-------------------------------------------------------------------------");
