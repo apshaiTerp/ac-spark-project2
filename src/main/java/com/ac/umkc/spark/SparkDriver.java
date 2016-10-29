@@ -380,7 +380,7 @@ public class SparkDriver implements Serializable {
     //Print out our search results
     for (TwitterStatusTopX tstx : searchResults) {
       System.out.println ("[" + tstx.getUserName() + "," + tstx.getStatusID() + "," + tstx.getCreatedDate() + "]");
-      System.out.println ("Tweet:" + tstx.getStatusText());
+      System.out.println ("  Tweet:" + tstx.getStatusText());
     }
     
     System.out.println ("-------------------------------------------------------------------------");

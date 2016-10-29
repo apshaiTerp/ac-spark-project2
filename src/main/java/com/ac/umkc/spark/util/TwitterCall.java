@@ -6,11 +6,8 @@ import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -20,7 +17,14 @@ import com.ac.umkc.spark.data.TwitterStatusExtras;
 /**
  * @author AC010168
  *
+ * This class just helps us execute the Twitter call.  We're having to use Deprecated
+ * Libraries, because the version of hadoop imported from spark is using 3.x versions of
+ * Apache's httpclient libraries, and we want to be using the 4.x versions.
+ * 
+ * The only way to resolve this dependency is to use the older, deprecated classes to
+ * facilitate our HTTPClient work.
  */
+@SuppressWarnings("deprecation")
 public class TwitterCall {
 
   /** OAuth Information for apshaiTerp Developer account on Twitter */
@@ -39,7 +43,7 @@ public class TwitterCall {
    * 
    * @return A valid object with our extra status information in it, or null.
    */
-  @SuppressWarnings({ "deprecation", "resource" })
+  @SuppressWarnings("resource")
   public static TwitterStatusExtras getTweet(long statusID) {
     HttpClient   client   = null;
     HttpResponse response = null;
@@ -97,8 +101,6 @@ public class TwitterCall {
       status.setStatusID(singleTweet.getLong("id"));
       status.setStatusText(singleTweet.getString("text"));
       
-      
-
       return status;
     } catch (Throwable t) {
       System.out.println(twitterURL);
