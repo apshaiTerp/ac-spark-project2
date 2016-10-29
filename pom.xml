@@ -53,6 +53,7 @@
     <compiler.plugin.version>3.1</compiler.plugin.version>
     <javadoc.plugin.version>2.9.1</javadoc.plugin.version>
     <reports.plugin.version>2.7</reports.plugin.version>
+    <shade.plugin.version>2.4.3</shade.plugin.version>
     <source.plugin.version>2.2.1</source.plugin.version>
     <surefire.plugin.version>2.18.1</surefire.plugin.version>
   </properties>
@@ -213,6 +214,30 @@
             <goals>
               <goal>single</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- We need to add Shade to handle the conflict resolution between spark's old 3.x httpclient
+           and the newer 4.x httpclient libraries 
+           -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>${shade.plugin.version}</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <relocations>
+                <relocation>
+                  <pattern>org.apache.http.client</pattern>
+                  <shadedPattern>shaded.org.apache.http.client</shadedPattern>
+                </relocation>
+              </relocations>
+            </configuration>
           </execution>
         </executions>
       </plugin>
