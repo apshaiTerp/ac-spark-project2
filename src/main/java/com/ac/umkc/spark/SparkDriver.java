@@ -18,8 +18,11 @@ import scala.Serializable;
 import scala.Tuple2;
 
 import com.ac.umkc.spark.data.TwitterStatus;
+import com.ac.umkc.spark.data.TwitterStatusExtras;
+import com.ac.umkc.spark.data.TwitterStatusTopX;
 import com.ac.umkc.spark.data.TwitterUser;
 import com.ac.umkc.spark.util.TupleSorter;
+import com.ac.umkc.spark.util.TwitterCall;
 
 
 /**
@@ -338,9 +341,8 @@ public class SparkDriver implements Serializable {
     System.out.println ("*************************************************************************");
     
     final String searchFor = searchTerm.toLowerCase();
-    //final int rowCount     = termLimit;
     
-    //Open our dataset, then filter out to matching hash tags
+    //Open our dataset
     JavaRDD<TwitterStatus> tweetRDD = sparkSession.read().textFile(tweetPath).javaRDD().map(
         new Function<String, TwitterStatus>() {
           
@@ -358,59 +360,31 @@ public class SparkDriver implements Serializable {
     tweetDF.createOrReplaceTempView("tweets");
     
     Dataset<Row> results = sparkSession.sql("SELECT userName, statusID, createdDate FROM tweets " + 
-        "WHERE LOWER(filteredText) LIKE '%" + searchFor + "%'");
+        "WHERE LOWER(filteredText) LIKE '%" + searchFor + "%' ORDER BY createdDate desc");
     
-    System.out.println ("Results found:" + results.count());
+    List<Row> topX = results.takeAsList(termLimit);
+    List<TwitterStatusTopX> searchResults = new ArrayList<TwitterStatusTopX>(topX.size());
+    for (Row row : topX) {
+      TwitterStatusTopX tstx = new TwitterStatusTopX();
+      tstx.setUserName(row.getString(0));
+      tstx.setStatusID(row.getLong(1));
+      tstx.setCreatedDate(row.getString(2));
+      
+      //This is where we make our External API call to pull in additional data
+      TwitterStatusExtras extras = TwitterCall.getTweet(tstx.getStatusID());
+      tstx.setStatusText(extras.getStatusText());
+      
+      searchResults.add(tstx);
+    }
+    
+    //Print out our search results
+    for (TwitterStatusTopX tstx : searchResults) {
+      System.out.println ("[" + tstx.getUserName() + "," + tstx.getStatusID() + "," + tstx.getCreatedDate() + "]");
+      System.out.println ("Tweet:" + tstx.getStatusText());
+    }
     
     System.out.println ("-------------------------------------------------------------------------");
     System.out.println ("-----------------------------  End Query 5  -----------------------------");
     System.out.println ("-------------------------------------------------------------------------");
   }
-  
-  @SuppressWarnings("unused")
-  private void dumpMethod() {
-    Dataset<Row> df = sparkSession.read().json(userPath);
-    
-    //df.show();
-    df.printSchema();
-    
-    //New Approach for RDD
-    JavaRDD<TwitterUser> userRDD = sparkSession.read().textFile(userPath).javaRDD().map(
-        new Function<String, TwitterUser>() {
-          /** It wants it, so I gave it one */
-          private static final long serialVersionUID = 5654145143753968626L;
-
-          public TwitterUser call(String line) throws Exception {
-            TwitterUser user = new TwitterUser();
-            user.parseFromJSON(line);
-            return user;
-          }
-          
-        });
-    Dataset<Row> userDF = sparkSession.createDataFrame(userRDD, TwitterUser.class);
-    userDF.createOrReplaceTempView("users");
-    
-    Dataset<Row> resultsDF = sparkSession.sql("SELECT userType, count(*) FROM users GROUP BY userType ORDER BY count(*) desc");
-    resultsDF.show();
-    
-    
-    JavaRDD<TwitterStatus> tweetRDD = sparkSession.read().textFile(tweetPath).javaRDD().map(
-        new Function<String, TwitterStatus>() {
-          
-          /** It wants it, so I gave it one */
-          private static final long serialVersionUID = 1503107307123339206L;
-
-          public TwitterStatus call(String line) throws Exception {
-            TwitterStatus status = new TwitterStatus();
-            status.parseFromJSON(line);
-            return status;
-          }
-        });
-    
-    Dataset<Row> tweetDF = sparkSession.createDataFrame(tweetRDD, TwitterStatus.class);
-    tweetDF.createOrReplaceTempView("tweets");
-    
-    tweetDF.show();
-  }
-
 }
