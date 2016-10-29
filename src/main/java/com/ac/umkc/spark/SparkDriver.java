@@ -194,8 +194,18 @@ public class SparkDriver implements Serializable {
       }).sortByKey();
     
     List<Tuple2<String, Integer>> results = sortLocations.takeOrdered(10, new TupleSorter());
-    for (Tuple2<String, Integer> tuple : results)
+
+    String resultJSON = "{results:[";
+    int resultCount = 0;
+    for (Tuple2<String, Integer> tuple : results) {
+      resultCount++;
       System.out.println ("(" + tuple._1() + "," + tuple._2() + ")");
+      resultJSON += "{\"location\":\"" + tuple._1() + "\", \"count\":" + tuple._2() + "}";
+      if (resultCount < results.size()) resultJSON += ",";
+    }
+    resultJSON += "]}";
+    
+    System.out.println ("\nResult JSON:\n" + resultJSON);
 
     System.out.println ("-------------------------------------------------------------------------");
     System.out.println ("-----------------------------  End Query 1  -----------------------------");
