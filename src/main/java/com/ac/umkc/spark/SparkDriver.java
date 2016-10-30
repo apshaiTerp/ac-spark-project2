@@ -282,7 +282,7 @@ public class SparkDriver implements Serializable {
       resultCount++;
       String line = "{\"userType\":\"" + row.getString(0) + "\",\"screenName\":\"" + row.getString(1) + 
           "\",\"userName\":\"" + row.getString(2) + "\",\"averageLR\":" + row.getDouble(3) + 
-          "\",\"tweetCount\":" + row.getDouble(4) + "}";
+          "\",\"tweetCount\":" + row.getLong(4) + "}";
       System.out.println (line);
       if (resultCount < designerList.size()) line += ",";
       resultJSON += line;
@@ -294,7 +294,7 @@ public class SparkDriver implements Serializable {
       resultCount++;
       String line = "{\"userType\":\"" + row.getString(0) + "\",\"screenName\":\"" + row.getString(1) + 
           "\",\"userName\":\"" + row.getString(2) + "\",\"averageLR\":" + row.getDouble(3) + 
-          "\",\"tweetCount\":" + row.getDouble(4) + "}";
+          "\",\"tweetCount\":" + row.getLong(4) + "}";
       System.out.println (line);
       if (resultCount < publisherList.size()) line += ",";
       resultJSON += line;
@@ -306,7 +306,7 @@ public class SparkDriver implements Serializable {
       resultCount++;
       String line = "{\"userType\":\"" + row.getString(0) + "\",\"screenName\":\"" + row.getString(1) + 
           "\",\"userName\":\"" + row.getString(2) + "\",\"averageLR\":" + row.getDouble(3) + 
-          "\",\"tweetCount\":" + row.getDouble(4) + "}";
+          "\",\"tweetCount\":" + row.getLong(4) + "}";
       System.out.println (line);
       if (resultCount < reviewerList.size()) line += ",";
       resultJSON += line;
@@ -318,7 +318,7 @@ public class SparkDriver implements Serializable {
       resultCount++;
       String line = "{\"userType\":\"" + row.getString(0) + "\",\"screenName\":\"" + row.getString(1) + 
           "\",\"userName\":\"" + row.getString(2) + "\",\"averageLR\":" + row.getDouble(3) + 
-          "\",\"tweetCount\":" + row.getDouble(4) + "}";
+          "\",\"tweetCount\":" + row.getLong(4) + "}";
       System.out.println (line);
       if (resultCount < conventionList.size()) line += ",";
       resultJSON += line;
@@ -330,7 +330,7 @@ public class SparkDriver implements Serializable {
       resultCount++;
       String line = "{\"userType\":\"" + row.getString(0) + "\",\"screenName\":\"" + row.getString(1) + 
           "\",\"userName\":\"" + row.getString(2) + "\",\"averageLR\":" + row.getDouble(3) + 
-          "\",\"tweetCount\":" + row.getDouble(4) + "}";
+          "\",\"tweetCount\":" + row.getLong(4) + "}";
       System.out.println (line);
       if (resultCount < communityList.size()) line += ",";
       resultJSON += line;
