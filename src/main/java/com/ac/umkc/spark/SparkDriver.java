@@ -503,7 +503,7 @@ public class SparkDriver implements Serializable {
     for (Row row : results) {
       resultCount++;
       String line = "{\"userType\":\"" + row.getString(0) + "\",\"shortDate\":\"" + row.getString(1) +  
-          "\",\"count\":" + row.getInt(2) + "}";
+          "\",\"count\":" + row.getLong(2) + "}";
       System.out.println (line);
       resultJSON += line;
       if (resultCount < results.size()) resultJSON += ",";
