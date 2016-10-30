@@ -78,6 +78,13 @@ public class TwitterStatusTopX {
    * @param statusText the statusText to set
    */
   public void setStatusText(String statusText) {
-    this.statusText = statusText;
+    if (statusText == null)
+      this.statusText = null;
+    else {
+      this.statusText = statusText.trim();
+      this.statusText = this.statusText.replace("\\", "\\\\");
+      this.statusText = this.statusText.replace("\"", "\\\"");
+      this.statusText = this.statusText.replace("/", "\\/");
+    }
   }
 }

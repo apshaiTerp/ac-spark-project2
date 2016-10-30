@@ -195,12 +195,13 @@ public class SparkDriver implements Serializable {
     
     List<Tuple2<String, Integer>> results = sortLocations.takeOrdered(10, new TupleSorter());
 
-    String resultJSON = "{results:[";
+    String resultJSON = "{\"results\":[";
     int resultCount = 0;
     for (Tuple2<String, Integer> tuple : results) {
       resultCount++;
-      System.out.println ("(" + tuple._1() + "," + tuple._2() + ")");
-      resultJSON += "{\"location\":\"" + tuple._1() + "\", \"count\":" + tuple._2() + "}";
+      String line = "{\"location\":\"" + tuple._1() + "\", \"count\":" + tuple._2() + "}";
+      System.out.println (line);
+      resultJSON += line;
       if (resultCount < results.size()) resultJSON += ",";
     }
     resultJSON += "]}";
@@ -267,11 +268,77 @@ public class SparkDriver implements Serializable {
         "ORDER BY AVG(t.favoriteCount + t.retweetCount) DESC");
 
     //Let's sample the top 10 most popular from each group
-    resultsDF.filter(new Column("userType").equalTo("DESIGNER")).show(10);
-    resultsDF.filter(new Column("userType").equalTo("PUBLISHER")).show(10);
-    resultsDF.filter(new Column("userType").equalTo("REVIEWER")).show(10);
-    resultsDF.filter(new Column("userType").equalTo("CONVENTION")).show(10);
-    resultsDF.filter(new Column("userType").equalTo("COMMUNITY")).show(10);
+    List<Row> designerList   = resultsDF.filter(new Column("userType").equalTo("DESIGNER")).takeAsList(10);
+    List<Row> publisherList  = resultsDF.filter(new Column("userType").equalTo("PUBLISHER")).takeAsList(10);
+    List<Row> reviewerList   = resultsDF.filter(new Column("userType").equalTo("REVIEWER")).takeAsList(10);
+    List<Row> conventionList = resultsDF.filter(new Column("userType").equalTo("CONVENTION")).takeAsList(10);
+    List<Row> communityList  = resultsDF.filter(new Column("userType").equalTo("COMMUNITY")).takeAsList(10);
+    
+    String resultJSON = "{\"queryTerms\":{\"startDate\":\"" + startDate + "\",\"endDate\":\"" + endDate + "\"}, " +
+        "\"results\":[";
+    int resultCount = 0;
+    //Process all designers
+    for (Row row : designerList) {
+      resultCount++;
+      String line = "{\"userType\":\"" + row.getString(0) + "\",\"screenName\":\"" + row.getString(1) + 
+          "\",\"userName\":\"" + row.getString(2) + "\",\"averageLR\":" + row.getDouble(3) + 
+          "\",\"tweetCount\":" + row.getDouble(4) + "}";
+      System.out.println (line);
+      if (resultCount < designerList.size()) line += ",";
+      resultJSON += line;
+    }
+
+    //Process all publishers
+    resultCount = 0;
+    for (Row row : publisherList) {
+      resultCount++;
+      String line = "{\"userType\":\"" + row.getString(0) + "\",\"screenName\":\"" + row.getString(1) + 
+          "\",\"userName\":\"" + row.getString(2) + "\",\"averageLR\":" + row.getDouble(3) + 
+          "\",\"tweetCount\":" + row.getDouble(4) + "}";
+      System.out.println (line);
+      if (resultCount < publisherList.size()) line += ",";
+      resultJSON += line;
+    }
+
+    //Process all reviewers
+    resultCount = 0;
+    for (Row row : reviewerList) {
+      resultCount++;
+      String line = "{\"userType\":\"" + row.getString(0) + "\",\"screenName\":\"" + row.getString(1) + 
+          "\",\"userName\":\"" + row.getString(2) + "\",\"averageLR\":" + row.getDouble(3) + 
+          "\",\"tweetCount\":" + row.getDouble(4) + "}";
+      System.out.println (line);
+      if (resultCount < reviewerList.size()) line += ",";
+      resultJSON += line;
+    }
+
+    //Process all conventions
+    resultCount = 0;
+    for (Row row : conventionList) {
+      resultCount++;
+      String line = "{\"userType\":\"" + row.getString(0) + "\",\"screenName\":\"" + row.getString(1) + 
+          "\",\"userName\":\"" + row.getString(2) + "\",\"averageLR\":" + row.getDouble(3) + 
+          "\",\"tweetCount\":" + row.getDouble(4) + "}";
+      System.out.println (line);
+      if (resultCount < conventionList.size()) line += ",";
+      resultJSON += line;
+    }
+
+    //Process all community users
+    resultCount = 0;
+    for (Row row : communityList) {
+      resultCount++;
+      String line = "{\"userType\":\"" + row.getString(0) + "\",\"screenName\":\"" + row.getString(1) + 
+          "\",\"userName\":\"" + row.getString(2) + "\",\"averageLR\":" + row.getDouble(3) + 
+          "\",\"tweetCount\":" + row.getDouble(4) + "}";
+      System.out.println (line);
+      if (resultCount < communityList.size()) line += ",";
+      resultJSON += line;
+    }
+    
+    resultJSON += "]}";
+    
+    System.out.println ("\nResult JSON:\n" + resultJSON);
     
     System.out.println ("-------------------------------------------------------------------------");
     System.out.println ("-----------------------------  End Query 2  -----------------------------");
@@ -339,12 +406,20 @@ public class SparkDriver implements Serializable {
     //Take the top 10 ordered results
     List<Tuple2<String, Integer>> results = hashTags.takeOrdered(10, new TupleSorter());
     System.out.println ("The Top 10 HashTags in use are:");
-    int count = 0;
     
+    String resultJSON = "{\"queryTerms\":{\"startDate\":\"" + startDate + "\",\"endDate\":\"" + endDate + "\"}, " +
+        "\"results\":[";
+    int resultCount = 0;
     for (Tuple2<String, Integer> tuple : results) {
-      count++;
-      System.out.println (count + ")  " + tuple._1() + "  (" + tuple._2() + ")");
+      resultCount++;
+      String line = "{\"hashTag\":\"" + tuple._1() + "\", \"count\":" + tuple._2() + "}";
+      System.out.println (line);
+      resultJSON += line;
+      if (resultCount < results.size()) resultJSON += ",";
     }
+    resultJSON += "]}";
+    
+    System.out.println ("\nResult JSON:\n" + resultJSON);
     
     System.out.println ("-------------------------------------------------------------------------");
     System.out.println ("-----------------------------  End Query 3  -----------------------------");
@@ -420,9 +495,22 @@ public class SparkDriver implements Serializable {
         "GROUP BY u.userType, t.shortDate " + 
         "ORDER BY u.userType, t.shortDate");
     
-    long rowsFound = resultsDF.count();
-    resultsDF.show((int)rowsFound);
-    System.out.println ("Number of rows found: " + rowsFound);
+    String resultJSON = "{\"queryTerms\":{\"searchTerm\":\"" + searchTerm + "\",\"startDate\":\"" + 
+        startDate + "\",\"endDate\":\"" + endDate + "\"}, " + "\"results\":[";
+    
+    int resultCount = 0;
+    List<Row> results = resultsDF.collectAsList();
+    for (Row row : results) {
+      resultCount++;
+      String line = "{\"userType\":\"" + row.getString(0) + "\",\"shortDate\":\"" + row.getString(1) +  
+          "\",\"count\":" + row.getInt(2) + "}";
+      System.out.println (line);
+      resultJSON += line;
+      if (resultCount < results.size()) resultJSON += ",";
+    }
+    resultJSON += "]}";
+    
+    System.out.println ("\nResult JSON:\n" + resultJSON);
 
     System.out.println ("-------------------------------------------------------------------------");
     System.out.println ("-----------------------------  End Query 4  -----------------------------");
@@ -479,11 +567,21 @@ public class SparkDriver implements Serializable {
       searchResults.add(tstx);
     }
     
-    //Print out our search results
+    String resultJSON = "{\"queryTerms\":{\"searchTerm\":\"" + searchTerm + "\",\"termLimit\":" + 
+        termLimit + "}, " + "\"results\":[";
+    
+    int resultCount = 0;
     for (TwitterStatusTopX tstx : searchResults) {
-      System.out.println ("[" + tstx.getUserName() + "," + tstx.getStatusID() + "," + tstx.getCreatedDate() + "]");
-      System.out.println ("  Tweet:" + tstx.getStatusText());
+      resultCount++;
+      String line = "{\"userName\":\"" + tstx.getUserName() + "\",\"statusID\":" + tstx.getStatusID() + 
+          "\",\"createdDate\":\"" + tstx.getCreatedDate() + "\",\"tweetText\":\"" + tstx.getStatusText() + "\"}";
+      System.out.println (line);
+      resultJSON += line;
+      if (resultCount < searchResults.size()) resultJSON += ",";
     }
+    resultJSON += "]}";
+    
+    System.out.println ("\nResult JSON:\n" + resultJSON);
     
     System.out.println ("-------------------------------------------------------------------------");
     System.out.println ("-----------------------------  End Query 5  -----------------------------");
