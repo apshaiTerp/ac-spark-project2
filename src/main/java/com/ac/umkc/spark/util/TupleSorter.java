@@ -6,6 +6,8 @@ import scala.Serializable;
 import scala.Tuple2;
 
 /**
+ * Helpful sorting utility for sorting Tuples by values instead of keys.
+ * 
  * @author AC010168
  *
  */

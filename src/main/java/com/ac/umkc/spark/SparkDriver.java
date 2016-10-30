@@ -28,6 +28,10 @@ import com.ac.umkc.spark.util.TwitterCall;
 
 
 /**
+ * The main class for this project.  We are leveraging Spark to run 5 queries.
+ * This class is designed to be run either interactively, or non-interactively
+ * using a pre-defined set of queries.
+ * 
  * @author AC010168
  *
  */
@@ -57,11 +61,18 @@ public class SparkDriver implements Serializable {
   }
   
   /**
-   * System main method.
+   * System main method.  We accept 2 or 3 parameters:
+   * <ul><li>args[0] = HDFS file path of our user data file</li>
+   * <li>args[1] = HDFS file path for our tweet content</li>
+   * <li>args[2] (Optional) = Flag to indicate we should use the non-interactive execution path</li>
+   * </ul>
    * 
-   * @param args The command line paramters.  We are expecting to receive 2 entries.
+   * @param args The command line paramters.  We are expecting to receive 2 or 3 entries.
    */
   public static void main(String[] args) {
+    if (args.length < 2)
+      throw new RuntimeException("Insufficient Command Line Arguments.  Two files paths are required.");
+      
     try {
       SparkSession spark = SparkSession.builder()
           .master("local")
@@ -70,8 +81,11 @@ public class SparkDriver implements Serializable {
           .getOrCreate();
       
       SparkDriver driver = new SparkDriver(args[0], args[1], spark);
-      //driver.execute();
-      driver.executeNonInteractive();
+      
+      if (args.length == 2)
+        driver.execute();
+      if (args.length == 3)
+        driver.executeNonInteractive();
     } catch (Throwable t) {
       t.printStackTrace();
     }
@@ -138,19 +152,31 @@ public class SparkDriver implements Serializable {
    * Helper method to allow me to run the program in a non-interactive fashion to gather logging data
    */
   public void executeNonInteractive() {
-    executeQuery1();
-    executeQuery2("2016.01.01", "2016.10.31");
-    executeQuery3("2016.01.01", "2016.10.31");
-    executeQuery4("GenCon2016", "2016.01.01", "2016.10.31");
-    executeQuery5("Terraforming Mars", 20);
+    String results = null;
+    results = executeQuery1();
+    System.out.println ("\nJSON Results:\n" + results);
+    
+    results = executeQuery2("2016.01.01", "2016.10.31");
+    System.out.println ("\nJSON Results:\n" + results);
+    
+    results = executeQuery3("2016.01.01", "2016.10.31");
+    System.out.println ("\nJSON Results:\n" + results);
+    
+    results = executeQuery4("GenCon2016", "2016.01.01", "2016.10.31");
+    System.out.println ("\nJSON Results:\n" + results);
+    
+    results = executeQuery5("Terraforming Mars", 20);
+    System.out.println ("\nJSON Results:\n" + results);
   }
 
   /**
    * This method should help us generate (and print) the top 10 most popular locations
    * for gamers.  This should only require the user data.  The gist of this query is
    * 'What are the top ten most popular locations where gamers are located'
+   * 
+   * @return a JSON-formatted object containing the results
    */
-  private void executeQuery1() {
+  private String executeQuery1() {
     System.out.println ("*************************************************************************");
     System.out.println ("***************************  Execute Query 1  ***************************");
     System.out.println ("*************************************************************************");
@@ -206,22 +232,24 @@ public class SparkDriver implements Serializable {
     }
     resultJSON += "]}";
     
-    System.out.println ("\nResult JSON:\n" + resultJSON);
-
     System.out.println ("-------------------------------------------------------------------------");
     System.out.println ("-----------------------------  End Query 1  -----------------------------");
     System.out.println ("-------------------------------------------------------------------------");
+    
+    return resultJSON;
   }
   
   /**
-   * This method should help us generate (and print) the top X most popular users.  
-   * This should only require the twitter data.  The gist of this query is
-   * 'Most popular users (based on likes and retweets per tweet as an average).
+   * This method should help us generate (and print) the top X most popular users by userType.  
+   * This requires both tweet and user data.  The gist of this query is
+   * 'Most top 10 popular users (based on likes and retweets per tweet as an average) by category.
    * 
    * @param startDate The beginning date for our date range (inclusive)
    * @param endDate The ending date for our date range (inclusive)
+   * 
+   * @return a JSON-formatted object containing the results
    */
-  private void executeQuery2(String startDate, String endDate) {
+  private String executeQuery2(String startDate, String endDate) {
     System.out.println ("*************************************************************************");
     System.out.println ("***************************  Execute Query 2  ***************************");
     System.out.println ("*************************************************************************");
@@ -338,11 +366,11 @@ public class SparkDriver implements Serializable {
     
     resultJSON += "]}";
     
-    System.out.println ("\nResult JSON:\n" + resultJSON);
-    
     System.out.println ("-------------------------------------------------------------------------");
     System.out.println ("-----------------------------  End Query 2  -----------------------------");
     System.out.println ("-------------------------------------------------------------------------");
+    
+    return resultJSON;
   }
   
   /**
@@ -351,8 +379,10 @@ public class SparkDriver implements Serializable {
    * 
    * @param startDate The beginning date for our date range (inclusive)
    * @param endDate The ending date for our date range (inclusive)
+   * 
+   * @return a JSON-formatted object containing the results
    */
-  private void executeQuery3(final String startDate, final String endDate) {
+  private String executeQuery3(final String startDate, final String endDate) {
     System.out.println ("*************************************************************************");
     System.out.println ("***************************  Execute Query 3  ***************************");
     System.out.println ("*************************************************************************");
@@ -419,11 +449,11 @@ public class SparkDriver implements Serializable {
     }
     resultJSON += "]}";
     
-    System.out.println ("\nResult JSON:\n" + resultJSON);
-    
     System.out.println ("-------------------------------------------------------------------------");
     System.out.println ("-----------------------------  End Query 3  -----------------------------");
     System.out.println ("-------------------------------------------------------------------------");
+    
+    return resultJSON;
   }
 
   /**
@@ -434,8 +464,10 @@ public class SparkDriver implements Serializable {
    * @param searchTerm the hashTag we want to find
    * @param startDate The beginning date for our date range (inclusive)
    * @param endDate The ending date for our date range (inclusive)
+   * 
+   * @return a JSON-formatted object containing the results
    */
-  private void executeQuery4(final String searchTerm, final String startDate, final String endDate) {
+  private String executeQuery4(final String searchTerm, final String startDate, final String endDate) {
     System.out.println ("*************************************************************************");
     System.out.println ("***************************  Execute Query 4  ***************************");
     System.out.println ("*************************************************************************");
@@ -510,11 +542,11 @@ public class SparkDriver implements Serializable {
     }
     resultJSON += "]}";
     
-    System.out.println ("\nResult JSON:\n" + resultJSON);
-
     System.out.println ("-------------------------------------------------------------------------");
     System.out.println ("-----------------------------  End Query 4  -----------------------------");
     System.out.println ("-------------------------------------------------------------------------");
+
+    return resultJSON;
   }
   
   /**
@@ -524,8 +556,10 @@ public class SparkDriver implements Serializable {
    * 
    * @param searchTerm the term we want to search for
    * @param termLimit the number of terms we want to find.
+   * 
+   * @return a JSON-formatted object containing the results
    */
-  private void executeQuery5(String searchTerm, int termLimit) {
+  private String executeQuery5(String searchTerm, int termLimit) {
     System.out.println ("*************************************************************************");
     System.out.println ("***************************  Execute Query 5  ***************************");
     System.out.println ("*************************************************************************");
@@ -581,10 +615,10 @@ public class SparkDriver implements Serializable {
     }
     resultJSON += "]}";
     
-    System.out.println ("\nResult JSON:\n" + resultJSON);
-    
     System.out.println ("-------------------------------------------------------------------------");
     System.out.println ("-----------------------------  End Query 5  -----------------------------");
     System.out.println ("-------------------------------------------------------------------------");
+    
+    return resultJSON;
   }
 }

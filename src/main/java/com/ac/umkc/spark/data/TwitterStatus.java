@@ -9,6 +9,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
+ * Java POJO to represent 'important' fields we want to gather from the Tweet data.
+ * 
  * @author AC010168
  * 
  */

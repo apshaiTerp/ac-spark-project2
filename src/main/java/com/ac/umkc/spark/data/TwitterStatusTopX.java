@@ -1,6 +1,9 @@
 package com.ac.umkc.spark.data;
 
 /**
+ * Java POJO to represent the results of one of our queries to combine Spark results
+ * with additional Twitter information.
+ * 
  * @author AC010168
  *
  */

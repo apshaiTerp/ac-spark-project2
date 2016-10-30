@@ -5,6 +5,9 @@ import java.io.Serializable;
 import org.json.JSONObject;
 
 /**
+ * Java POJO representing the User object from twitter, or at least the important fields we
+ * want to capture.
+ * 
  * @author AC010168
  *
  */

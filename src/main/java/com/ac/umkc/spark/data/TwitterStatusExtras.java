@@ -1,6 +1,9 @@
 package com.ac.umkc.spark.data;
 
 /**
+ * Java POJO to encapsulate any extra items we want to pull from the tweet to complement
+ * our canned Spark queries.
+ * 
  * @author AC010168
  *
  */
