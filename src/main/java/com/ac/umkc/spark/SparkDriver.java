@@ -19,10 +19,12 @@ import org.apache.spark.sql.SparkSession;
 import scala.Serializable;
 import scala.Tuple2;
 
+import com.ac.umkc.spark.data.GoogleData;
 import com.ac.umkc.spark.data.TwitterStatus;
 import com.ac.umkc.spark.data.TwitterStatusExtras;
 import com.ac.umkc.spark.data.TwitterStatusTopX;
 import com.ac.umkc.spark.data.TwitterUser;
+import com.ac.umkc.spark.util.GoogleCall;
 import com.ac.umkc.spark.util.TupleSorter;
 import com.ac.umkc.spark.util.TwitterCall;
 
@@ -206,7 +208,13 @@ public class SparkDriver implements Serializable {
       private static final long serialVersionUID = 7711668945522265992L;
 
           public Tuple2<String, Integer> call(TwitterUser user) {
-            return new Tuple2<String, Integer>(user.getLocation(), 1);
+            
+            //Add in the check for Google Maps API
+            //For now, lets just use the 'sanitized' location
+            GoogleData data = GoogleCall.getGoogleLocation(user.getLocation());
+            if (data == null)
+              return new Tuple2<String, Integer>(user.getLocation(), 1);
+            else return new Tuple2<String, Integer>(data.getLocation(), 1);
           }
       });
     
@@ -240,7 +248,7 @@ public class SparkDriver implements Serializable {
   }
   
   /**
-   * This method should help us generate (and print) the top X most popular users by userType.  
+   * This method should help us generate (and print) the top 10 most popular users by userType.  
    * This requires both tweet and user data.  The gist of this query is
    * 'Most top 10 popular users (based on likes and retweets per tweet as an average) by category.
    * 
