@@ -35,8 +35,31 @@ public class GoogleCall {
     GoogleData data       = null;
     
     //We first need to sanitize our data
-    String saneLocation = location.replaceAll(" ", "%20");
+    String saneLocation = location.replaceAll("%", "%25") ;
     
+    saneLocation = saneLocation.replaceAll(" ", "%20");
+    saneLocation = saneLocation.replaceAll(";", "%3B");
+    saneLocation = saneLocation.replaceAll("/", "%2F");
+    saneLocation = saneLocation.replaceAll("?", "%3F");
+    saneLocation = saneLocation.replaceAll(":", "%3A");
+    saneLocation = saneLocation.replaceAll("@", "%40");
+    saneLocation = saneLocation.replaceAll("=", "%3D");
+    saneLocation = saneLocation.replaceAll("&", "%26");
+    
+    saneLocation = saneLocation.replaceAll("\"", "%22");
+    saneLocation = saneLocation.replaceAll("<", "%3C");
+    saneLocation = saneLocation.replaceAll(">", "%3E");
+    saneLocation = saneLocation.replaceAll("#", "%23");
+    saneLocation = saneLocation.replaceAll("{", "%7B");
+    saneLocation = saneLocation.replaceAll("}", "%7D");
+    saneLocation = saneLocation.replaceAll("|", "%7C");
+    saneLocation = saneLocation.replaceAll("\\", "%5C");
+    saneLocation = saneLocation.replaceAll("^", "%5E");
+    saneLocation = saneLocation.replaceAll("~", "%7E");
+    saneLocation = saneLocation.replaceAll("[", "%5B");
+    saneLocation = saneLocation.replaceAll("]", "%5D");
+    saneLocation = saneLocation.replaceAll("`", "%60");
+
     try {
       client = new DefaultHttpClient();
       
