@@ -34,10 +34,13 @@ public class GoogleCall {
     String responseString = null;
     GoogleData data       = null;
     
+    //We first need to sanitize our data
+    String saneLocation = location.replaceAll(" ", "%20");
+    
     try {
       client = new DefaultHttpClient();
       
-      googleURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + location + 
+      googleURL = "https://maps.googleapis.com/maps/api/geocode/json?address=" + saneLocation + 
           "&key=" + API_KEY;
 
       HttpGet request = new HttpGet(googleURL);
