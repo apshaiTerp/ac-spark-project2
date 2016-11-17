@@ -77,7 +77,7 @@ public class GoogleCall {
         
         data.setLocation(results.getString("formatted_address"));
         
-        JSONObject locationJSON = results.getJSONObject("location");
+        JSONObject locationJSON = results.getJSONObject("geometry").getJSONObject("location");
         
         data.setGeoLat(locationJSON.getDouble("lat"));
         data.setGeoLon(locationJSON.getDouble("lng"));
