@@ -1,10 +1,15 @@
 package com.ac.umkc.spark.data;
 
+import scala.Serializable;
+
 /**
  * @author AC010168
  *
  */
-public class GoogleData {
+public class GoogleData implements Serializable {
+  
+  /** Adding so I can serialize this mess */
+  private static final long serialVersionUID = 336972756824513853L;
   
   private String location;
   private double geoLat;

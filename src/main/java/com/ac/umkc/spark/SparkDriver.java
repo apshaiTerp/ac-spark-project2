@@ -233,7 +233,7 @@ public class SparkDriver implements Serializable {
           }
       });
     
-    List<Tuple2<String, Integer>> candidateList = reduceLocations.takeOrdered(100, new TupleSorter());
+    List<Tuple2<String, Integer>> candidateList = reduceLocations.takeOrdered(400, new TupleSorter());
     
     JavaSparkContext context = new JavaSparkContext(sparkSession.sparkContext());
     JavaPairRDD<String, Integer> filteredLocations = context.parallelizePairs(candidateList);
