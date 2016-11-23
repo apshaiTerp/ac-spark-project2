@@ -211,15 +211,6 @@ public class SparkDriver implements Serializable {
       private static final long serialVersionUID = 7711668945522265992L;
 
           public Tuple2<String, Integer> call(TwitterUser user) {
-            
-            /**************************************************************************
-            //Add in the check for Google Maps API
-            //For now, lets just use the 'sanitized' location
-            GoogleData data = GoogleCall.getGoogleLocation(user.getLocation());
-            if (data == null)
-              return new Tuple2<String, Integer>(user.getLocation(), 1);
-            else return new Tuple2<String, Integer>(data.getLocation(), 1);
-            **************************************************************************/
             return new Tuple2<String, Integer>(user.getLocation(), 1);
           }
       });
@@ -240,23 +231,19 @@ public class SparkDriver implements Serializable {
     
     //Because the Google API has limits, and there may be duplicates near the top because of
     //the fact that location is user entered.
-    JavaPairRDD<GoogleData, Integer> googleMap = filteredLocations.mapToPair(new PairFunction<Tuple2<String, Integer>, GoogleData, Integer>() {
+    JavaPairRDD<String, Integer> googleMap = filteredLocations.mapToPair(new PairFunction<Tuple2<String, Integer>, String, Integer>() {
       /** Gave it cause it wants one. */
       private static final long serialVersionUID = 1L;
 
-      public Tuple2<GoogleData, Integer> call(Tuple2<String, Integer> tuple) {
+      public Tuple2<String, Integer> call(Tuple2<String, Integer> tuple) {
         
         GoogleData data = GoogleCall.getGoogleLocation(tuple._1());
-        if (data == null) {
-          data = new GoogleData();
-          data.setLocation(tuple._1());
-          
-          return new Tuple2<GoogleData, Integer>(data, tuple._2());
-        } else return new Tuple2<GoogleData, Integer>(data, tuple._2());
+        if (data == null) return new Tuple2<String, Integer>(tuple._1(), tuple._2());
+        else return new Tuple2<String, Integer>(data.getLocation(), tuple._2());
       }
     });
-
-    JavaPairRDD<GoogleData, Integer> reduceGoogle = googleMap.reduceByKey(new Function2<Integer, Integer, Integer>() {
+    
+    JavaPairRDD<String, Integer> reduceGoogle = googleMap.reduceByKey(new Function2<Integer, Integer, Integer>() {
       /** Gave it cause it wants one. */
       private static final long serialVersionUID = 15891246245607150L;
 
@@ -265,13 +252,13 @@ public class SparkDriver implements Serializable {
           }
       });
     
-    List<Tuple2<GoogleData, Integer>> results = reduceGoogle.takeOrdered(10, new GoogleSorter());
+    List<Tuple2<String, Integer>> results = reduceGoogle.takeOrdered(10, new TupleSorter());
     
     String resultJSON = "{\"results\":[";
     int resultCount = 0;
-    for (Tuple2<GoogleData, Integer> tuple : results) {
+    for (Tuple2<String, Integer> tuple : results) {
       resultCount++;
-      String line = "{\"location\":\"" + tuple._1().getLocation() + "\", \"count\":" + tuple._2() + "}";
+      String line = "{\"location\":\"" + tuple._1() + "\", \"count\":" + tuple._2() + "}";
       System.out.println (line);
       resultJSON += line;
       if (resultCount < results.size()) resultJSON += ",";
