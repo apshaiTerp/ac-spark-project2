@@ -7,6 +7,7 @@ import java.util.Scanner;
 
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
@@ -179,6 +180,7 @@ public class SparkDriver implements Serializable {
    * 
    * @return a JSON-formatted object containing the results
    */
+  @SuppressWarnings("resource")
   private String executeQuery1() {
     System.out.println ("*************************************************************************");
     System.out.println ("***************************  Execute Query 1  ***************************");
@@ -231,12 +233,14 @@ public class SparkDriver implements Serializable {
           }
       });
     
-    //DEBUG
-    System.out.println ("How many reduced locations are there: " + reduceLocations.count());
+    List<Tuple2<String, Integer>> candidateList = reduceLocations.takeOrdered(100, new TupleSorter());
+    
+    JavaSparkContext context = new JavaSparkContext(sparkSession.sparkContext());
+    JavaPairRDD<String, Integer> filteredLocations = context.parallelizePairs(candidateList);
     
     //Because the Google API has limits, and there may be duplicates near the top because of
     //the fact that location is user entered.
-    JavaPairRDD<GoogleData, Integer> googleMap = reduceLocations.mapToPair(new PairFunction<Tuple2<String, Integer>, GoogleData, Integer>() {
+    JavaPairRDD<GoogleData, Integer> googleMap = filteredLocations.mapToPair(new PairFunction<Tuple2<String, Integer>, GoogleData, Integer>() {
       /** Gave it cause it wants one. */
       private static final long serialVersionUID = 1L;
 
