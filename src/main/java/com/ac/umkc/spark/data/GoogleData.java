@@ -20,7 +20,12 @@ public class GoogleData implements Serializable {
     location = null;
     geoLat = 0.0;
     geoLon = 0.0;
-    setCount(0);
+    count  = 0;
+  }
+  
+  @Override
+  public String toString() {
+    return "{\"location\":\"" + location + "\", \"count\":" + count + ", \"geoLat\":" + geoLat + ", \"geoLon\":" + geoLon + "}";
   }
 
   /**
