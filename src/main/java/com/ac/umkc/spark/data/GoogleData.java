@@ -14,11 +14,13 @@ public class GoogleData implements Serializable {
   private String location;
   private double geoLat;
   private double geoLon;
+  private int    count;
   
   public GoogleData() {
     location = null;
     geoLat = 0.0;
     geoLon = 0.0;
+    setCount(0);
   }
 
   /**
@@ -61,5 +63,19 @@ public class GoogleData implements Serializable {
    */
   public void setGeoLon(double geoLon) {
     this.geoLon = geoLon;
+  }
+
+  /**
+   * @return the count
+   */
+  public int getCount() {
+    return count;
+  }
+
+  /**
+   * @param count the count to set
+   */
+  public void setCount(int count) {
+    this.count = count;
   }
 }

@@ -26,7 +26,6 @@ import com.ac.umkc.spark.data.TwitterStatusExtras;
 import com.ac.umkc.spark.data.TwitterStatusTopX;
 import com.ac.umkc.spark.data.TwitterUser;
 import com.ac.umkc.spark.util.GoogleCall;
-import com.ac.umkc.spark.util.GoogleSorter;
 import com.ac.umkc.spark.util.TupleSorter;
 import com.ac.umkc.spark.util.TwitterCall;
 
@@ -224,7 +223,7 @@ public class SparkDriver implements Serializable {
           }
       });
     
-    List<Tuple2<String, Integer>> candidateList = reduceLocations.takeOrdered(400, new TupleSorter());
+    List<Tuple2<String, Integer>> candidateList = reduceLocations.takeOrdered(500, new TupleSorter());
     
     JavaSparkContext context = new JavaSparkContext(sparkSession.sparkContext());
     JavaPairRDD<String, Integer> filteredLocations = context.parallelizePairs(candidateList);
@@ -253,6 +252,21 @@ public class SparkDriver implements Serializable {
       });
     
     List<Tuple2<String, Integer>> results = reduceGoogle.takeOrdered(10, new TupleSorter());
+    
+    List<GoogleData> googleData = new ArrayList<GoogleData>(results.size());
+    for (Tuple2<String, Integer> tuple : results) {
+      GoogleData data = GoogleCall.getGoogleLocation(tuple._1());
+      if (data == null) {
+        data = new GoogleData();
+        data.setLocation(tuple._1());
+      }
+      data.setCount(tuple._2());
+
+      googleData.add(data);
+    }
+    
+    JavaRDD<GoogleData> googleRDD = context.parallelize(googleData);
+    googleRDD.saveAsTextFile("hdfs://localhost:9000/proj3/query1");
     
     String resultJSON = "{\"results\":[";
     int resultCount = 0;
