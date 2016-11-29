@@ -29,7 +29,7 @@ public class TweetLRData implements Serializable {
   public String toString() {
     return "{\"userType\":\"" + userType + "\",\"screenName\":\"" + screenName + 
         "\",\"userName\":\"" + userName + "\",\"averageLR\":" + averageLR + 
-        "\",\"tweetCount\":" + tweetCount + "}";
+        ",\"tweetCount\":" + tweetCount + "}";
   }  
   
   /**
