@@ -26,6 +26,7 @@ import scala.Serializable;
 import scala.Tuple2;
 
 import com.ac.umkc.spark.data.GoogleData;
+import com.ac.umkc.spark.data.HashTagData;
 import com.ac.umkc.spark.data.TweetLRData;
 import com.ac.umkc.spark.data.TwitterStatus;
 import com.ac.umkc.spark.data.TwitterStatusExtras;
@@ -467,6 +468,7 @@ public class SparkDriver implements Serializable {
    * 
    * @return a JSON-formatted object containing the results
    */
+  @SuppressWarnings("resource")
   private String executeQuery3(final String startDate, final String endDate) {
     System.out.println ("*************************************************************************");
     System.out.println ("***************************  Execute Query 3  ***************************");
@@ -518,8 +520,9 @@ public class SparkDriver implements Serializable {
           }
         });
     
-    long hashTagCount = hashTags.count();
+    int hashTagCount = (int)hashTags.count();
     System.out.println ("How many HashTags are in the set: " + hashTagCount);
+    HashTagData hashTagCountData = new HashTagData("All HashTags", hashTagCount);
     
     JavaPairRDD<String, Integer> hashTagSum = hashTags.mapToPair(
         new PairFunction<Tuple2<String, Integer>, String, Integer>() {
@@ -539,29 +542,49 @@ public class SparkDriver implements Serializable {
         });
 
     List<Tuple2<String, Integer>> otherResults = hashTagSum.collect();
-    System.out.println ("How many other HashTags were used: " + otherResults.get(0)._2());
+    int totalHashTagsUsed = otherResults.get(0)._2();
+    
+    List<HashTagData> allHashTagResults = new ArrayList<HashTagData>();
+    allHashTagResults.add(hashTagCountData);
     
     //Take the top 10 ordered results
     List<Tuple2<String, Integer>> results = hashTags.takeOrdered(10, new TupleSorter());
     System.out.println ("The Top 10 HashTags in use are:");
     
-    String resultJSON = "{\"queryTerms\":{\"startDate\":\"" + startDate + "\",\"endDate\":\"" + endDate + "\"}, " +
-        "\"results\":[";
-    int resultCount = 0;
     for (Tuple2<String, Integer> tuple : results) {
-      resultCount++;
-      String line = "{\"hashTag\":\"" + tuple._1() + "\", \"count\":" + tuple._2() + "}";
-      System.out.println (line);
-      resultJSON += line;
-      if (resultCount < results.size()) resultJSON += ",";
+      HashTagData curData = new HashTagData(tuple._1(), tuple._2());
+      totalHashTagsUsed -= tuple._2();
+      allHashTagResults.add(curData);
     }
-    resultJSON += "]}";
+    allHashTagResults.add(new HashTagData("Other HashTags", totalHashTagsUsed));
+    
+    String dynamicPath = "/proj3/query3/" + startDate + "/" + endDate;
+    try {
+      Configuration hdfsConfiguration = new Configuration();
+      hdfsConfiguration.set("fs.defaultFS", "hdfs://localhost:9000");
+      FileSystem hdfs                 = FileSystem.get(hdfsConfiguration);
+      
+      Path checkFile = new Path(dynamicPath);
+      if (hdfs.exists(checkFile)) {
+        System.out.println ("I need to purge before writing!");
+        hdfs.delete(checkFile, true);
+      } 
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    String outputPath = "hdfs://localhost:9000" + dynamicPath;
+    JavaSparkContext context = new JavaSparkContext(sparkSession.sparkContext());
+    JavaRDD<HashTagData> resultRDD = context.parallelize(allHashTagResults);
+    resultRDD.saveAsTextFile(outputPath);
+    
+    System.out.println ("Query Results Written to: " + outputPath);
     
     System.out.println ("-------------------------------------------------------------------------");
     System.out.println ("-----------------------------  End Query 3  -----------------------------");
     System.out.println ("-------------------------------------------------------------------------");
     
-    return resultJSON;
+    return "{}";
   }
 
   /**
