@@ -538,7 +538,8 @@ public class SparkDriver implements Serializable {
           }
         });
 
-    System.out.println ("How many results were in the Sum record: " + hashTagSum.count());
+    List<Tuple2<String, Integer>> otherResults = hashTagSum.collect();
+    System.out.println ("How many other HashTags were used: " + otherResults.get(0)._2());
     
     //Take the top 10 ordered results
     List<Tuple2<String, Integer>> results = hashTags.takeOrdered(10, new TupleSorter());
