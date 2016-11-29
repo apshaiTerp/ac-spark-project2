@@ -518,7 +518,27 @@ public class SparkDriver implements Serializable {
           }
         });
     
-    System.out.println ("How many HashTags are in the set: " + hashTags.count());
+    long hashTagCount = hashTags.count();
+    System.out.println ("How many HashTags are in the set: " + hashTagCount);
+    
+    JavaPairRDD<String, Integer> hashTagSum = hashTags.mapToPair(
+        new PairFunction<Tuple2<String, Integer>, String, Integer>() {
+          /** It wants it, so I gave it one */
+          private static final long serialVersionUID = 6310698767617690806L;
+
+          public Tuple2<String, Integer> call(Tuple2<String, Integer> status) {
+            return new Tuple2<String, Integer>("All HashTags Used", status._2());
+          }
+        }).reduceByKey(new Function2<Integer, Integer, Integer>() {
+          /** It wants it, so I gave it one */
+          private static final long serialVersionUID = -4583081102611123090L;
+
+          public Integer call(Integer i1, Integer i2) {
+            return i1 + i2;
+          }
+        });
+
+    System.out.println ("How many results were in the Sum record: " + hashTagSum.count());
     
     //Take the top 10 ordered results
     List<Tuple2<String, Integer>> results = hashTags.takeOrdered(10, new TupleSorter());
