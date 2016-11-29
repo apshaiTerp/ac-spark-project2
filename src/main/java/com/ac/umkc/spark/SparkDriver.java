@@ -486,14 +486,14 @@ public class SparkDriver implements Serializable {
           }
         }).filter(        
         new Function<TwitterStatus, Boolean>() {
-      /** It wants it, so I gave it one */
-      private static final long serialVersionUID = 113462456123339206L;
-
-      public Boolean call(TwitterStatus status) throws Exception {
-        if ((status.getShortDate().compareTo(startDate) >= 0) && (status.getShortDate().compareTo(endDate) <= 0))
-          return ((status.getHashTags() != null) && (status.getHashTags().size() > 0));
-        return false;
-      }
+          /** It wants it, so I gave it one */
+          private static final long serialVersionUID = 113462456123339206L;
+    
+          public Boolean call(TwitterStatus status) throws Exception {
+            if ((status.getShortDate().compareTo(startDate) >= 0) && (status.getShortDate().compareTo(endDate) <= 0))
+              return ((status.getHashTags() != null) && (status.getHashTags().size() > 0));
+            return false;
+          }
     });
 
     //Flat map our individual hashTags to Tuples of (hashTag, count), then
@@ -517,6 +517,8 @@ public class SparkDriver implements Serializable {
             return i1 + i2;
           }
         });
+    
+    System.out.println ("How many HashTags are in the set: " + hashTags.count());
     
     //Take the top 10 ordered results
     List<Tuple2<String, Integer>> results = hashTags.takeOrdered(10, new TupleSorter());
