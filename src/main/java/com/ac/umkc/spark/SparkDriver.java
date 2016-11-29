@@ -1,10 +1,15 @@
 package com.ac.umkc.spark;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -21,6 +26,7 @@ import scala.Serializable;
 import scala.Tuple2;
 
 import com.ac.umkc.spark.data.GoogleData;
+import com.ac.umkc.spark.data.TweetLRData;
 import com.ac.umkc.spark.data.TwitterStatus;
 import com.ac.umkc.spark.data.TwitterStatusExtras;
 import com.ac.umkc.spark.data.TwitterStatusTopX;
@@ -296,6 +302,7 @@ public class SparkDriver implements Serializable {
    * 
    * @return a JSON-formatted object containing the results
    */
+  @SuppressWarnings("resource")
   private String executeQuery2(String startDate, String endDate) {
     System.out.println ("*************************************************************************");
     System.out.println ("***************************  Execute Query 2  ***************************");
@@ -349,75 +356,90 @@ public class SparkDriver implements Serializable {
     List<Row> conventionList = resultsDF.filter(new Column("userType").equalTo("CONVENTION")).takeAsList(10);
     List<Row> communityList  = resultsDF.filter(new Column("userType").equalTo("COMMUNITY")).takeAsList(10);
     
-    String resultJSON = "{\"queryTerms\":{\"startDate\":\"" + startDate + "\",\"endDate\":\"" + endDate + "\"}, " +
-        "\"results\":[";
-    int resultCount = 0;
+    List<TweetLRData> fullResults = new LinkedList<TweetLRData>();
+    
     //Process all designers
     for (Row row : designerList) {
-      resultCount++;
-      String line = "{\"userType\":\"" + row.getString(0) + "\",\"screenName\":\"" + row.getString(1) + 
-          "\",\"userName\":\"" + row.getString(2) + "\",\"averageLR\":" + row.getDouble(3) + 
-          "\",\"tweetCount\":" + row.getLong(4) + "}";
-      System.out.println (line);
-      if (resultCount < designerList.size()) line += ",";
-      resultJSON += line;
+      TweetLRData rowData = new TweetLRData();
+      rowData.setUserType(row.getString(0));
+      rowData.setScreenName(row.getString(1));
+      rowData.setUserName(row.getString(2));
+      rowData.setAverageLR(row.getDouble(3));
+      rowData.setTweetCount((int)row.getLong(4));
+      fullResults.add(rowData);
     }
 
     //Process all publishers
-    resultCount = 0;
     for (Row row : publisherList) {
-      resultCount++;
-      String line = "{\"userType\":\"" + row.getString(0) + "\",\"screenName\":\"" + row.getString(1) + 
-          "\",\"userName\":\"" + row.getString(2) + "\",\"averageLR\":" + row.getDouble(3) + 
-          "\",\"tweetCount\":" + row.getLong(4) + "}";
-      System.out.println (line);
-      if (resultCount < publisherList.size()) line += ",";
-      resultJSON += line;
+      TweetLRData rowData = new TweetLRData();
+      rowData.setUserType(row.getString(0));
+      rowData.setScreenName(row.getString(1));
+      rowData.setUserName(row.getString(2));
+      rowData.setAverageLR(row.getDouble(3));
+      rowData.setTweetCount((int)row.getLong(4));
+      fullResults.add(rowData);
     }
 
     //Process all reviewers
-    resultCount = 0;
     for (Row row : reviewerList) {
-      resultCount++;
-      String line = "{\"userType\":\"" + row.getString(0) + "\",\"screenName\":\"" + row.getString(1) + 
-          "\",\"userName\":\"" + row.getString(2) + "\",\"averageLR\":" + row.getDouble(3) + 
-          "\",\"tweetCount\":" + row.getLong(4) + "}";
-      System.out.println (line);
-      if (resultCount < reviewerList.size()) line += ",";
-      resultJSON += line;
+      TweetLRData rowData = new TweetLRData();
+      rowData.setUserType(row.getString(0));
+      rowData.setScreenName(row.getString(1));
+      rowData.setUserName(row.getString(2));
+      rowData.setAverageLR(row.getDouble(3));
+      rowData.setTweetCount((int)row.getLong(4));
+      fullResults.add(rowData);
     }
 
     //Process all conventions
-    resultCount = 0;
     for (Row row : conventionList) {
-      resultCount++;
-      String line = "{\"userType\":\"" + row.getString(0) + "\",\"screenName\":\"" + row.getString(1) + 
-          "\",\"userName\":\"" + row.getString(2) + "\",\"averageLR\":" + row.getDouble(3) + 
-          "\",\"tweetCount\":" + row.getLong(4) + "}";
-      System.out.println (line);
-      if (resultCount < conventionList.size()) line += ",";
-      resultJSON += line;
+      TweetLRData rowData = new TweetLRData();
+      rowData.setUserType(row.getString(0));
+      rowData.setScreenName(row.getString(1));
+      rowData.setUserName(row.getString(2));
+      rowData.setAverageLR(row.getDouble(3));
+      rowData.setTweetCount((int)row.getLong(4));
+      fullResults.add(rowData);
     }
 
     //Process all community users
-    resultCount = 0;
     for (Row row : communityList) {
-      resultCount++;
-      String line = "{\"userType\":\"" + row.getString(0) + "\",\"screenName\":\"" + row.getString(1) + 
-          "\",\"userName\":\"" + row.getString(2) + "\",\"averageLR\":" + row.getDouble(3) + 
-          "\",\"tweetCount\":" + row.getLong(4) + "}";
-      System.out.println (line);
-      if (resultCount < communityList.size()) line += ",";
-      resultJSON += line;
+      TweetLRData rowData = new TweetLRData();
+      rowData.setUserType(row.getString(0));
+      rowData.setScreenName(row.getString(1));
+      rowData.setUserName(row.getString(2));
+      rowData.setAverageLR(row.getDouble(3));
+      rowData.setTweetCount((int)row.getLong(4));
+      fullResults.add(rowData);
     }
     
-    resultJSON += "]}";
+    String dynamicPath = "/proj3/query2/" + startDate + "/" + endDate;
+    try {
+      Configuration hdfsConfiguration = new Configuration();
+      hdfsConfiguration.set("fs.defaultFS", "hdfs://localhost:9000");
+      FileSystem hdfs                 = FileSystem.get(hdfsConfiguration);
+      
+      Path checkFile = new Path(dynamicPath);
+      if (hdfs.exists(checkFile)) {
+        System.out.println ("I need to purge before writing!");
+        hdfs.delete(checkFile, true);
+      } 
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    String outputPath = "hdfs://localhost:9000" + dynamicPath;
+    JavaSparkContext context = new JavaSparkContext(sparkSession.sparkContext());
+    JavaRDD<TweetLRData> resultRDD = context.parallelize(fullResults);
+    resultRDD.saveAsTextFile(outputPath);
+    
+    System.out.println ("Query Results Written to: " + outputPath);
     
     System.out.println ("-------------------------------------------------------------------------");
     System.out.println ("-----------------------------  End Query 2  -----------------------------");
     System.out.println ("-------------------------------------------------------------------------");
     
-    return resultJSON;
+    return "{}";
   }
   
   /**
