@@ -257,7 +257,8 @@ public class SparkDriver implements Serializable {
           }
       });
     
-    List<Tuple2<String, Integer>> results = reduceGoogle.takeOrdered(10, new TupleSorter());
+    //List<Tuple2<String, Integer>> results = reduceGoogle.takeOrdered(10, new TupleSorter());
+    List<Tuple2<String, Integer>> results = reduceGoogle.takeOrdered(25, new TupleSorter());
     
     List<GoogleData> googleData = new ArrayList<GoogleData>(results.size());
     for (Tuple2<String, Integer> tuple : results) {
@@ -271,8 +272,23 @@ public class SparkDriver implements Serializable {
       googleData.add(data);
     }
     
+    String dynamicPath = "hdfs://localhost:9000/proj3/query1";
+    try {
+      Configuration hdfsConfiguration = new Configuration();
+      hdfsConfiguration.set("fs.defaultFS", "hdfs://localhost:9000");
+      FileSystem hdfs                 = FileSystem.get(hdfsConfiguration);
+      
+      Path checkFile = new Path(dynamicPath);
+      if (hdfs.exists(checkFile)) {
+        System.out.println ("I need to purge before writing!");
+        hdfs.delete(checkFile, true);
+      } 
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    
     JavaRDD<GoogleData> googleRDD = context.parallelize(googleData);
-    googleRDD.saveAsTextFile("hdfs://localhost:9000/proj3/query1");
+    googleRDD.saveAsTextFile(dynamicPath);
     
     String resultJSON = "{\"results\":[";
     int resultCount = 0;
