@@ -18,7 +18,7 @@ import com.ac.umkc.spark.data.GoogleData;
 public class GoogleCall {
   
   /** Google Developer API Key required for submitting call */
-  private static final String API_KEY = "AIzaSyB0OPbkLdr319NnQll7B_RT8pyPYhahHqQ";
+  private static final String API_KEY = "AIzaSyC5tRlNgHFpE9miACYpphkIOAs2oBPhJdE";
   
   /**
    * Helper method to run the provided location through the Google API
