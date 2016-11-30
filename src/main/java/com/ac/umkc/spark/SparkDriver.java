@@ -761,7 +761,7 @@ public class SparkDriver implements Serializable {
     
     //Since the dynamicPath can't have spaces, replace any that might be in the search term
     //with an underscore
-    String altSearchTerm = searchTerm.replaceAll(" ", "_");
+    String altSearchTerm = searchTerm.toLowerCase().replaceAll(" ", "_");
     
     String dynamicPath = "/proj3/query5/" + altSearchTerm + "/" + termLimit;
     try {
