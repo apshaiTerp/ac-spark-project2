@@ -28,6 +28,7 @@ import scala.Tuple2;
 import com.ac.umkc.spark.data.GoogleData;
 import com.ac.umkc.spark.data.HashTagData;
 import com.ac.umkc.spark.data.TweetLRData;
+import com.ac.umkc.spark.data.TweetsDayData;
 import com.ac.umkc.spark.data.TwitterStatus;
 import com.ac.umkc.spark.data.TwitterStatusExtras;
 import com.ac.umkc.spark.data.TwitterStatusTopX;
@@ -598,6 +599,7 @@ public class SparkDriver implements Serializable {
    * 
    * @return a JSON-formatted object containing the results
    */
+  @SuppressWarnings("resource")
   private String executeQuery4(final String searchTerm, final String startDate, final String endDate) {
     System.out.println ("*************************************************************************");
     System.out.println ("***************************  Execute Query 4  ***************************");
@@ -651,33 +653,54 @@ public class SparkDriver implements Serializable {
     Dataset<Row> userDF = sparkSession.createDataFrame(userRDD, TwitterUser.class);
     userDF.createOrReplaceTempView("users");
     
-    Dataset<Row> resultsDF = sparkSession.sql("Select u.userType, t.shortDate, count(t.statusID) " +
+    Dataset<Row> resultsDF = sparkSession.sql("Select u.userType, t.shortDate, t.year, t.month, t.day, count(t.statusID) " +
         "FROM tweets t " + 
         "JOIN users u " +
         "ON t.userID = u.twitterID " + 
-        "GROUP BY u.userType, t.shortDate " + 
+        "GROUP BY u.userType, t.shortDate, t.year, t.month, t.day " + 
         "ORDER BY u.userType, t.shortDate");
     
-    String resultJSON = "{\"queryTerms\":{\"searchTerm\":\"" + searchTerm + "\",\"startDate\":\"" + 
-        startDate + "\",\"endDate\":\"" + endDate + "\"}, " + "\"results\":[";
-    
-    int resultCount = 0;
     List<Row> results = resultsDF.collectAsList();
+    List<TweetsDayData> tweetResults = new ArrayList<TweetsDayData>(results.size());
+    
     for (Row row : results) {
-      resultCount++;
-      String line = "{\"userType\":\"" + row.getString(0) + "\",\"shortDate\":\"" + row.getString(1) +  
-          "\",\"count\":" + row.getLong(2) + "}";
-      System.out.println (line);
-      resultJSON += line;
-      if (resultCount < results.size()) resultJSON += ",";
+      TweetsDayData data = new TweetsDayData();
+      data.setUserType(row.getString(0));
+      data.setShortDate(row.getString(1));
+      data.setCount(row.getInt(2));
+      data.setYear(row.getInt(3));
+      data.setMonth(row.getInt(4));
+      data.setDay(row.getInt(5));
+      tweetResults.add(data);
     }
-    resultJSON += "]}";
+    
+    String dynamicPath = "/proj3/query4/" + searchTerm + "/" + startDate + "/" + endDate;
+    try {
+      Configuration hdfsConfiguration = new Configuration();
+      hdfsConfiguration.set("fs.defaultFS", "hdfs://localhost:9000");
+      FileSystem hdfs                 = FileSystem.get(hdfsConfiguration);
+      
+      Path checkFile = new Path(dynamicPath);
+      if (hdfs.exists(checkFile)) {
+        System.out.println ("I need to purge before writing!");
+        hdfs.delete(checkFile, true);
+      } 
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    String outputPath = "hdfs://localhost:9000" + dynamicPath;
+    JavaSparkContext context = new JavaSparkContext(sparkSession.sparkContext());
+    JavaRDD<TweetsDayData> resultRDD = context.parallelize(tweetResults);
+    resultRDD.saveAsTextFile(outputPath);
+    
+    System.out.println ("Query Results Written to: " + outputPath);
     
     System.out.println ("-------------------------------------------------------------------------");
     System.out.println ("-----------------------------  End Query 4  -----------------------------");
     System.out.println ("-------------------------------------------------------------------------");
 
-    return resultJSON;
+    return "{}";
   }
   
   /**
