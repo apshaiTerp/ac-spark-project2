@@ -123,7 +123,15 @@ public class TwitterStatus {
       for (int i = 0; i < jsonHash.length(); i++)
         addHashTag(jsonHash.getString(i));
       
-      setShortDate(shortFormatter.format(fullFormatter.parse(createdDate)));
+      Date tempDate = fullFormatter.parse(createdDate);
+      Calendar tempCal = Calendar.getInstance();
+      tempCal.setTime(tempDate);
+      
+      setShortDate(shortFormatter.format(tempDate));
+      
+      setYear(tempCal.get(Calendar.YEAR));
+      setMonth(tempCal.get(Calendar.MONTH) + 1);
+      setDay(tempCal.get(Calendar.DAY_OF_MONTH));
        
       //System.out.println ("Successfully Parsed");
     } catch (Throwable t) {
