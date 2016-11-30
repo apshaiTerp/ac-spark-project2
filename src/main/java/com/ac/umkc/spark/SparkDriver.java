@@ -667,10 +667,10 @@ public class SparkDriver implements Serializable {
       TweetsDayData data = new TweetsDayData();
       data.setUserType(row.getString(0));
       data.setShortDate(row.getString(1));
-      data.setCount(row.getInt(2));
-      data.setYear(row.getInt(3));
-      data.setMonth(row.getInt(4));
-      data.setDay(row.getInt(5));
+      data.setCount((int)row.getLong(2));
+      data.setYear((int)row.getLong(3));
+      data.setMonth((int)row.getLong(4));
+      data.setDay((int)row.getLong(5));
       tweetResults.add(data);
     }
     
