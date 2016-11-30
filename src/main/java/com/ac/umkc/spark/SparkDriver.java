@@ -30,13 +30,10 @@ import com.ac.umkc.spark.data.HashTagData;
 import com.ac.umkc.spark.data.TweetLRData;
 import com.ac.umkc.spark.data.TweetsDayData;
 import com.ac.umkc.spark.data.TwitterStatus;
-import com.ac.umkc.spark.data.TwitterStatusExtras;
 import com.ac.umkc.spark.data.TwitterStatusTopX;
 import com.ac.umkc.spark.data.TwitterUser;
 import com.ac.umkc.spark.util.GoogleCall;
 import com.ac.umkc.spark.util.TupleSorter;
-import com.ac.umkc.spark.util.TwitterCall;
-
 
 /**
  * The main class for this project.  We are leveraging Spark to run 5 queries.
@@ -713,6 +710,7 @@ public class SparkDriver implements Serializable {
    * 
    * @return a JSON-formatted object containing the results
    */
+  @SuppressWarnings("resource")
   private String executeQuery5(String searchTerm, int termLimit) {
     System.out.println ("*************************************************************************");
     System.out.println ("***************************  Execute Query 5  ***************************");
@@ -748,31 +746,45 @@ public class SparkDriver implements Serializable {
       tstx.setStatusID(row.getLong(1));
       tstx.setCreatedDate(row.getString(2));
       
+      /**********************************************************************************
       //This is where we make our External API call to pull in additional data
       TwitterStatusExtras extras = TwitterCall.getTweet(tstx.getStatusID());
       tstx.setStatusText(extras.getStatusText());
+      **********************************************************************************/
+      
+      //Instead, create the dynamic widget which will be used to render the tweet block
+      tstx.setStatusText("https://publish.twitter.com/oembed?url=https://twitter.com/" + tstx.getUserName() + 
+          "/status/" + tstx.getStatusID());
       
       searchResults.add(tstx);
     }
     
-    String resultJSON = "{\"queryTerms\":{\"searchTerm\":\"" + searchTerm + "\",\"termLimit\":" + 
-        termLimit + "}, " + "\"results\":[";
-    
-    int resultCount = 0;
-    for (TwitterStatusTopX tstx : searchResults) {
-      resultCount++;
-      String line = "{\"userName\":\"" + tstx.getUserName() + "\",\"statusID\":" + tstx.getStatusID() + 
-          "\",\"createdDate\":\"" + tstx.getCreatedDate() + "\",\"tweetText\":\"" + tstx.getStatusText() + "\"}";
-      System.out.println (line);
-      resultJSON += line;
-      if (resultCount < searchResults.size()) resultJSON += ",";
+    String dynamicPath = "/proj3/query5/" + searchTerm + "/" + termLimit;
+    try {
+      Configuration hdfsConfiguration = new Configuration();
+      hdfsConfiguration.set("fs.defaultFS", "hdfs://localhost:9000");
+      FileSystem hdfs                 = FileSystem.get(hdfsConfiguration);
+      
+      Path checkFile = new Path(dynamicPath);
+      if (hdfs.exists(checkFile)) {
+        System.out.println ("I need to purge before writing!");
+        hdfs.delete(checkFile, true);
+      } 
+    } catch (IOException e) {
+      e.printStackTrace();
     }
-    resultJSON += "]}";
+
+    String outputPath = "hdfs://localhost:9000" + dynamicPath;
+    JavaSparkContext context = new JavaSparkContext(sparkSession.sparkContext());
+    JavaRDD<TwitterStatusTopX> resultRDD = context.parallelize(searchResults);
+    resultRDD.saveAsTextFile(outputPath);
+    
+    System.out.println ("Query Results Written to: " + outputPath);
     
     System.out.println ("-------------------------------------------------------------------------");
     System.out.println ("-----------------------------  End Query 5  -----------------------------");
     System.out.println ("-------------------------------------------------------------------------");
     
-    return resultJSON;
+    return "{}";
   }
 }

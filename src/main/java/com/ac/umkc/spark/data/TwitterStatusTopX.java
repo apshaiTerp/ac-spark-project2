@@ -1,5 +1,7 @@
 package com.ac.umkc.spark.data;
 
+import scala.Serializable;
+
 /**
  * Java POJO to represent the results of one of our queries to combine Spark results
  * with additional Twitter information.
@@ -7,8 +9,11 @@ package com.ac.umkc.spark.data;
  * @author AC010168
  *
  */
-public class TwitterStatusTopX {
+public class TwitterStatusTopX implements Serializable {
 
+  /** Adding because it needs it */
+  private static final long serialVersionUID = 4737010945082679500L;
+  
   /** The unique ID for this tweet */
   private long statusID;
   /** The userName who wrote this tweet */
