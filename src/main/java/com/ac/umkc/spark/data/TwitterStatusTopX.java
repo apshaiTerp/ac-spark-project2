@@ -33,6 +33,12 @@ public class TwitterStatusTopX implements Serializable {
     statusText  = null;
   }
 
+  @Override
+  public String toString() {
+    return "{\"userName\":\"" + userName + "\", \"statusID\":" + statusID + "\", \"createdDate\":\"" + createdDate + 
+        "\", \"statusText\":" + statusText+ "\"}";
+  }
+  
   /**
    * @return the statusID
    */

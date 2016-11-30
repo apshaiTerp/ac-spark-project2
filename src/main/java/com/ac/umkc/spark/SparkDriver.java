@@ -759,7 +759,11 @@ public class SparkDriver implements Serializable {
       searchResults.add(tstx);
     }
     
-    String dynamicPath = "/proj3/query5/" + searchTerm + "/" + termLimit;
+    //Since the dynamicPath can't have spaces, replace any that might be in the search term
+    //with an underscore
+    String altSearchTerm = searchTerm.replaceAll(" ", "_");
+    
+    String dynamicPath = "/proj3/query5/" + altSearchTerm + "/" + termLimit;
     try {
       Configuration hdfsConfiguration = new Configuration();
       hdfsConfiguration.set("fs.defaultFS", "hdfs://localhost:9000");
