@@ -92,13 +92,6 @@ public class TwitterStatusTopX implements Serializable {
    * @param statusText the statusText to set
    */
   public void setStatusText(String statusText) {
-    if (statusText == null)
-      this.statusText = null;
-    else {
-      this.statusText = statusText.trim();
-      this.statusText = this.statusText.replace("\\", "\\\\");
-      this.statusText = this.statusText.replace("\"", "\\\"");
-      this.statusText = this.statusText.replace("/", "\\/");
-    }
+    this.statusText = statusText;
   }
 }
